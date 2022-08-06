@@ -3,11 +3,14 @@ export class Vector2 {
         this.x = x;
         this.y = y;
     }
+}
 
-    add(v2) {
-        this.x += v2.x;
-        this.y += v2.y;
-    }
+export function subVec2(v1, v2) {
+    return new Vector3(v1.x - v2.x, v1.y - v2.y);
+}
+
+export function addVec2(v1, v2) {
+    return new Vector3(v1.x + v2.x, v1.y + v2.y);
 }
 
 export class Vector3 {
@@ -21,4 +24,8 @@ export class Vector3 {
 
 export function subVec3(v1, v2) {
     return new Vector3(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
+}
+
+export function addVec3(v1, v2) {
+    return new Vector3(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
 }
