@@ -3,7 +3,7 @@ import { Vector2, Vector3 } from "./Math/vector.js"
 import { Camera } from "./Objects/camera.js"
 import { Cube, HexPrism, Mesh, Tri } from "./Objects/mesh.js"
 import { Color, Black, White, Red, Green, Blue } from "./Math/color.js"
-import { mat4x4VecMult, mat4x4Mult, worldMatrix/*, viewMatrix*/, projectionMatrix, screenMatrix, look_at, FPSview } from "./Math/matrix.js"
+import { mat4x4VecMult, mat4x4Mult, worldMatrix, projectionMatrix, screenMatrix, FPSview } from "./Math/matrix.js"
 
 let canvas = document.getElementById("canvas");
 let c = canvas.getContext("2d");
@@ -12,11 +12,6 @@ let text = document.getElementById("text");
 
 canvas.width = document.documentElement.clientWidth;
 canvas.height = document.documentElement.clientHeight;
-
-const near = 0.1;
-const far = 10;
-const fov = 90;
-const aspect_ratio = canvas.height / canvas.width;
 
 var left = false;
 var right = false;
@@ -92,6 +87,11 @@ let depth_buffer = new Array(canvas.width, canvas.height);
 //console.log(look_at(camera.pos, camera.look_at, camera.up));
 
 let xRot = 0, zRot = 0;
+
+const near = 0.1;
+const far = 1;
+const fov = 90;
+const aspect_ratio = canvas.height / canvas.width;
 
 function loop() {
     window.requestAnimationFrame(loop);

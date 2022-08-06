@@ -87,7 +87,7 @@ export function rotation_z(a) {
 }
 
 export function rotationMatrix(x, y, z) {
-    return mat4x4Mult(mat4x4Mult(rotation_y(y), rotation_x(x)), rotation_z(z));
+    return mat4x4Mult(mat4x4Mult(rotation_y(x), rotation_x(y)), rotation_z(z));
 }
 
 export function worldMatrix(mesh) {
@@ -96,44 +96,6 @@ export function worldMatrix(mesh) {
     let rotation = rotationMatrix(mesh.rot.x, mesh.rot.y, mesh.rot.z);
 
     return mat4x4Mult(mat4x4Mult(scale, rotation), translation);
-}
-
-export function cameraMatrix(camera) {
-
-    let x = camera.pos.x;
-    let y = camera.pos.y;
-    let z = camera.pos.z;
-
-    let translation = [
-        [  1,  0,  0,  0  ],
-        [  0,  1,  0,  0  ],
-        [  0,  0,  1,  0  ],
-        [ -x, -y, -z,  1  ]
-    ];
-
-    let rx = camera.right.x
-    let ry = camera.right.y;
-    let rz = camera.right.z;
-
-    let ux = camera.up.x
-    let uy = camera.up.y;
-    let uz = camera.up.z;
-
-    let fx = camera.forward.x
-    let fy = camera.forward.y;
-    let fz = camera.forward.z;
-
-    
-    console.log(rx, ry, rz);
-
-    let rotation = [
-        [ rx, ux, fx,  0  ],
-        [ ry, uy, fy,  0  ],
-        [ rz, uz, fz,  0  ],
-        [  0,  0,  0,  1  ]
-    ];
-
-    return mat4x4Mult(translation, rotation);
 }
 
 export function projectionMatrix(near, far, fov, aspect_ratio) {
@@ -145,14 +107,12 @@ export function projectionMatrix(near, far, fov, aspect_ratio) {
     let m3 = (far + near) / (far - near);
     let m4 = (2 * far * near) / (far - near);
 
-    let projection = [
+    return [
         [ m1,  0,  0,  0  ],
         [  0, m2,  0,  0  ],
         [  0,  0, m3, m4  ],
         [  0,  0, -1,  0  ]
     ];
-
-    return projection;
 }
 
 export function screenMatrix(width, height) {
