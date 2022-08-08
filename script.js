@@ -80,7 +80,8 @@ var mouse = new Vector2(0, 0);
 let buffer = new Buffer(c, canvas.width, canvas.height);
 let camera = new Camera(new Vector3(0, 0, 10), new Vector3(0, 0, 0));
 
-let cube = new Cube(new Vector3(0, 0, 0), new Vector3(0, 0, 0), 1);
+//let cube = new Cube(new Vector3(0, 0, 0), new Vector3(0, 0, 0), 1);
+let cube = new HexPrism(new Vector3(0, 0, 0), new Vector3(0, 0, 0), 1);
 
 let depth_buffer = new Array(canvas.width, canvas.height);
 
@@ -88,17 +89,15 @@ let depth_buffer = new Array(canvas.width, canvas.height);
 
 let xRot = 0, zRot = 0;
 
-const near = 0.1;
+const near = 10;
 const far = 1;
 const fov = 90;
 const aspect_ratio = canvas.height / canvas.width;
 
 function loop() {
     window.requestAnimationFrame(loop);
-
-    text.innerText = (mouse.x / canvas.width + 0.5) + "\n" + (mouse.y / canvas.height - 0.5) + "\n";
-    xRot = (mouse.x / canvas.width - 0.5) *2;
-    zRot = (mouse.y / canvas.height - 0.5) *2;
+    xRot = (mouse.x / canvas.width - 0.5) * 2;
+    zRot = (mouse.y / canvas.height - 0.5) * 2;
 
 
     move();
@@ -121,16 +120,23 @@ function loop() {
 
         let result = mat4x4VecMult(fMatrix, cube.vertices[i]);
 
-        //text.innerText = result.x + "\n" + result.y + "\n" + result.z + "\n" + result.w;
+        text.innerText = result.x + "\n" + result.y + "\n" + result.z + "\n" + result.w;
 
-        if (result.w != 0) {
-            result.x /= result.w;
-            result.y /= result.w;
-            result.z /= result.w;
+        //let screen = mat4x4VecMult(screenMatrix(canvas.width, canvas.height), result);
+/*
+        let x = (result.x + 1) * (0.5 * canvas.width); 
+        let y = (result.y + 1) * (0.5 * canvas.height);*/
+
+        if (result.x < -1 || result.x > 1 || result.y < -1 || result.y > 1) {
+            a.push(new Vector2(0, 0));
+        } else {
+
+            let x = result.x * canvas.width/2 + canvas.width/2;
+            let y = result.y * canvas.height/2 + canvas.height/2;
+
+
+            a.push(new Vector2(x, y));
         }
-
-        let screen = mat4x4VecMult(screenMatrix(canvas.width, canvas.height), result);
-        a.push(new Vector2(screen.x, screen.y));
     }
 
 

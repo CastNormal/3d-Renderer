@@ -7,6 +7,12 @@ export function mat4x4VecMult(mat, vec) {
     let y = mat[0][1] * vec.x + mat[1][1] * vec.y + mat[2][1] * vec.z + mat[3][1];
     let z = mat[0][2] * vec.x + mat[1][2] * vec.y + mat[2][2] * vec.z + mat[3][2];
     let w = mat[0][3] * vec.x + mat[1][3] * vec.y + mat[2][3] * vec.z + mat[3][3];
+
+    if (w !== 0 && w !== 1) {
+        x /= w;
+        y /= w;
+        z /= w;
+    }
     
     return new Vector3(x, y, z, w);
 }
@@ -100,18 +106,18 @@ export function worldMatrix(mesh) {
 
 export function projectionMatrix(near, far, fov, aspect_ratio) {
 
-    let rFov = 1/Math.tan((fov * 0.5) * (180 / Math.PI));
+    let rFov = 1/Math.tan(fov * 0.5 * Math.PI / 180);
 
     let m1 = aspect_ratio * rFov;
     let m2 = rFov;
-    let m3 = (far + near) / (far - near);
-    let m4 = (2 * far * near) / (far - near);
+    let m3 = -(far / (far - near));
+    let m4 = -((far * near) / (far - near));
 
     return [
         [ m1,  0,  0,  0  ],
         [  0, m2,  0,  0  ],
-        [  0,  0, m3, m4  ],
-        [  0,  0, -1,  0  ]
+        [  0,  0, m3, -1  ],
+        [  0,  0, m4,  0  ]
     ];
 }
 
