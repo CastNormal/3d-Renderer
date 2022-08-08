@@ -52,39 +52,6 @@ export class Cube extends Mesh {
     }
 }
 
-export class Cube extends Mesh {
-
-    constructor(position, rotation, scale) {
-        super(position, rotation, scale);
-
-        this.vertices = [
-            new Vector3(1, 1, -1),
-            new Vector3(1, -1, -1),
-            new Vector3(1, 1, 1),
-            new Vector3(1, -1, 1),
-            new Vector3(-1, 1, -1),
-            new Vector3(-1, -1, -1),
-            new Vector3(-1, 1, 1),
-            new Vector3(-1, -1, 1)
-        ];
-    
-        this.faces = [
-            new Tri(5, 3, 1),
-            new Tri(3, 8, 4),
-            new Tri(7, 6, 8),
-            new Tri(2, 8, 6),
-            new Tri(1, 4, 2),
-            new Tri(5, 2, 6),
-            new Tri(5, 7, 3),
-            new Tri(3, 7, 8),
-            new Tri(7, 5, 6),
-            new Tri(2, 4, 8),
-            new Tri(1, 3, 4),
-            new Tri(5, 1, 2)
-        ];
-    }
-}
-
 
 export class HexPrism extends Mesh {
 
