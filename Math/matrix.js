@@ -1,4 +1,4 @@
-import { Vector3, subVec3 } from "./vector.js";
+import { Vector3, subVec3, cross, dot, normalize } from "./vector.js";
 
 
 export function mat4x4VecMult(mat, vec) {
@@ -106,17 +106,17 @@ export function worldMatrix(mesh) {
 
 export function projectionMatrix(near, far, fov, aspect_ratio) {
 
-    let rFov = 1/Math.tan(fov * 0.5 * Math.PI / 180);
+    let rFov = 1/Math.tan((fov * 0.5) * (Math.PI / 180));
 
     let m1 = aspect_ratio * rFov;
     let m2 = rFov;
-    let m3 = -(far / (far - near));
-    let m4 = -((far * near) / (far - near));
+    let m3 = far / (far - near);
+    let m4 = -far * near / (far - near);
 
     return [
         [ m1,  0,  0,  0  ],
         [  0, m2,  0,  0  ],
-        [  0,  0, m3, -1  ],
+        [  0,  0, m3, 1  ],
         [  0,  0, m4,  0  ]
     ];
 }
@@ -134,32 +134,10 @@ export function screenMatrix(width, height) {
     ];
 }
 
-function cross(v1, v2) {
-	let vx = v1.y * v2.z - v1.z * v2.y;
-	let vy = v1.z * v2.x - v1.x * v2.z;
-	let vz = v1.x * v2.y - v1.y * v2.x;
-
-    //console.log(v2, v2);
-
-	return new Vector3(vx, vy, vz);
-}
-
-function dot(v1, v2) {
-    return v1.x*v2.x + v1.y*v2.y + v1.z * v2.z;
-}
-
-function normal(v) {
-    let l = Math.sqrt(dot(v, v));
-    //console.log(l);
-    if (l != 0) return new Vector3(v.x / l, v.y / l, v.z / l);
-    
-    return v;
-}
-
 export function look_at(eye, target, up) {
 
-    let zaxis = normal(new Vector3(target.x - eye.x, target.y - eye.y, target.z - eye.z));
-    let xaxis = normal(cross(up, zaxis));
+    let zaxis = normalize(subVec3(target, eye));
+    let xaxis = normalize(cross(up, zaxis));
     let yaxis = cross(zaxis, xaxis);
     
     return [

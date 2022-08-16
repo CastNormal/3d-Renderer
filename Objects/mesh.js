@@ -1,13 +1,15 @@
 import { Vector3 } from "../Math/vector.js";
 
 export class Mesh {
-    vertices = [];
+    vertices = [ new Vector3(0, 0, 0) ];
     faces = [];
 
     constructor(position = new Vector3(0, 0, 0), rotation = new Vector3(0, 0, 0), scale = 1) {
         this.pos = position;
         this.rot = rotation;
         this.scale = scale;
+
+
     }
 }
 
@@ -25,14 +27,14 @@ export class Cube extends Mesh {
         super(position, rotation, scale);
 
         this.vertices = [
-            new Vector3(1, 1, -1),
-            new Vector3(1, -1, -1),
-            new Vector3(1, 1, 1),
-            new Vector3(1, -1, 1),
-            new Vector3(-1, 1, -1),
+            new Vector3(-1,  1,  1),
+            new Vector3(-1, -1,  1),
+            new Vector3(-1,  1, -1),
             new Vector3(-1, -1, -1),
-            new Vector3(-1, 1, 1),
-            new Vector3(-1, -1, 1)
+            new Vector3( 1,  1,  1),
+            new Vector3( 1, -1,  1),
+            new Vector3( 1,  1, -1),
+            new Vector3( 1, -1, -1)
         ];
     
         this.faces = [
@@ -94,6 +96,38 @@ export class HexPrism extends Mesh {
             new Tri(11, 1, 3),
             new Tri(3, 5, 7),
             new Tri(7, 9, 3)
+        ];
+    }
+}
+
+export class Teapot extends Mesh {
+    constructor(position, rotation, scale) {
+        super(position, rotation, scale);
+
+        this.vertices = [
+            
+        ];
+    
+        this.faces = [
+            
+        ];
+    }
+}
+
+export class Plane extends Mesh {
+    constructor(position, rotation, scale) {
+        super(position, rotation, scale);
+
+        this.vertices = [
+            new Vector3(1, 1, 1),
+            new Vector3(1, -1, 1),
+            new Vector3(-1, 1, 1),
+            new Vector3(-1, -1, 1)
+        ];
+    
+        this.faces = [
+            new Tri(1, 2, 3),
+            new Tri(2, 3, 4),
         ];
     }
 }

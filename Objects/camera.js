@@ -5,12 +5,7 @@ export class Camera {
         this.pos = postion;
         this.rot = rotation;
 
-        this.right =   new Vector3(1, 0, 0, 0);
-        this.up =      new Vector3(0, 1, 0, 0);
-        this.forward = new Vector3(0, 0, 1, 0);
-        this.postion = new Vector3(0, 0, 0, 1);
-
-        this.direction = new Vector3(0, 0, 0);
-        this.look_at = new Vector3(0, 0, 0);
+        this.up = new Vector3(0, 1, 0);
+        this.target = new Vector3(0, 0, -1);
     }
 }
