@@ -7,12 +7,6 @@ export function mat4x4VecMult(mat, vec) {
     let y = mat[0][1] * vec.x + mat[1][1] * vec.y + mat[2][1] * vec.z + mat[3][1];
     let z = mat[0][2] * vec.x + mat[1][2] * vec.y + mat[2][2] * vec.z + mat[3][2];
     let w = mat[0][3] * vec.x + mat[1][3] * vec.y + mat[2][3] * vec.z + mat[3][3];
-
-    if (w !== 0 && w !== 1) {
-        x /= w;
-        y /= w;
-        z /= w;
-    }
     
     return new Vector3(x, y, z, w);
 }
@@ -30,6 +24,13 @@ export function mat4x4Mult(m1, m2) {
     return matrix;
 }
 
+export function pDivide(v) {
+    if (v.w !== 0 && v.w !== 1) {
+        v.x /= v.w;
+        v.y /= v.w;
+        v.z /= v.w;
+    }
+}
 
 
 
@@ -116,7 +117,7 @@ export function projectionMatrix(near, far, fov, aspect_ratio) {
     return [
         [ m1,  0,  0,  0  ],
         [  0, m2,  0,  0  ],
-        [  0,  0, m3, 1  ],
+        [  0,  0, m3,  1  ],
         [  0,  0, m4,  0  ]
     ];
 }

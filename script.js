@@ -1,9 +1,9 @@
-import { Buffer, getVertex } from  "./render.js"
+import { Buffer } from  "./render.js"
 import { Vector2, Vector3, cross, subVec3, dot, addVec3 } from "./Math/vector.js"
 import { Camera } from "./Objects/camera.js"
 import { Cube } from "./Objects/mesh.js"
 import { Color, Black, White, Red, Green, Blue } from "./Math/color.js"
-import { mat4x4VecMult, mat4x4Mult, worldMatrix, projectionMatrix, screenMatrix, FPSview, look_at } from "./Math/matrix.js"
+import { mat4x4VecMult, mat4x4Mult, worldMatrix, projectionMatrix, screenMatrix, FPSview, pDivide } from "./Math/matrix.js"
 
 let canvas = document.getElementById("canvas");
 let c = canvas.getContext("2d");
@@ -66,11 +66,11 @@ function move() {
     }
 
     if (up) {
-        camera.pos.y -= mv;
+        camera.pos.y += mv;
     }
 
     if (down) {
-        camera.pos.y += mv;
+        camera.pos.y -= mv;
     }
 }
 
@@ -78,9 +78,9 @@ var mouse = new Vector2(0, 0);
 
 
 let buffer = new Buffer(c, canvas.width, canvas.height);
-let camera = new Camera(new Vector3(0, 0, -5), new Vector3(0, 0, 0));
+let camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, 0));
 
-let cube = new Cube(new Vector3(0, 0, 0), new Vector3(0, 0, 0), 1);
+let cube = new Cube(new Vector3(0, 0, 5), new Vector3(0, 0, 0), 1);
 
 let xRot = 0, zRot = 0;
 
@@ -108,43 +108,42 @@ function loop() {
     window.requestAnimationFrame(loop);
 
     xRot = (mouse.x / canvas.width - 0.5) * 8;
-    zRot = (mouse.y / canvas.height - 0.5);
-    cube.rot.x += 0.01;
-    cube.rot.z += 0.01;
+    zRot = (mouse.y / canvas.height - 0.5) * 2;
+    //cube.rot.x += 0.01;
+    //cube.rot.z += 0.01;
 
     move();
 
-    buffer.clear(canvas.width, canvas.height, c);
-
-    let a = [], b = [];
+    //buffer.clear(canvas.width, canvas.height, c);
+    c.clearRect(0, 0, canvas.width, canvas.height);
 
     let world_matrix = worldMatrix(cube);
     let view_matrix = FPSview(camera.pos, zRot, xRot);
     let fMatrix = mat4x4Mult(mat4x4Mult(world_matrix, view_matrix), projection_matrix);
 
-    for (let i in cube.vertices) {
-
-        let result = mat4x4VecMult(fMatrix, cube.vertices[i]);
-        
-
-        if (result.x < -1 || result.x > 1 || result.y < -1 || result.y > 1 || result.z < -1 || result.z > 1) {
-            a.push(0);
-        } else {
-
-            let x = (result.x + 1) * (canvas.width * 0.5);
-            let y = (result.y + 1) * (canvas.height * 0.5);
-
-
-            a.push(new Vector2(x, y));
-        }
-    }
-
     for (let i in cube.faces) {
-        let v1 = a[cube.faces[i].v1-1];
-        let v2 = a[cube.faces[i].v2-1];
-        let v3 = a[cube.faces[i].v3-1];
+        let v = [
+            mat4x4VecMult(fMatrix, cube.vertices[cube.faces[i].v1-1]),
+            mat4x4VecMult(fMatrix, cube.vertices[cube.faces[i].v2-1]),
+            mat4x4VecMult(fMatrix, cube.vertices[cube.faces[i].v3-1]),
+        ];
 
-        if (!v1 || !v2 || !v3) continue;
+        if (v[0].z < -v[0].w || v[0].z > v[0].w || v[0].x < -v[0].w || v[0].x > v[0].w || v[0].y < -v[0].w || v[0].y > v[0].w) return;
+        if (v[1].z < -v[1].w || v[1].z > v[1].w || v[1].x < -v[1].w || v[1].x > v[1].w || v[1].y < -v[1].w || v[1].y > v[1].w) return;
+        if (v[2].z < -v[2].w || v[2].z > v[2].w || v[2].x < -v[2].w || v[2].x > v[2].w || v[2].y < -v[2].w || v[2].y > v[2].w) return;
+
+        
+        for (let j of v) {
+            pDivide(j);
+        }
+
+        let screen = [
+            mat4x4VecMult(screenMatrix(canvas.width, canvas.height), v[0]),
+            mat4x4VecMult(screenMatrix(canvas.width, canvas.height), v[1]),
+            mat4x4VecMult(screenMatrix(canvas.width, canvas.height), v[2])
+        ];
+
+
 
         let nv1 = mat4x4VecMult(world_matrix, cube.vertices[cube.faces[i].v1-1]);
         let nv2 = mat4x4VecMult(world_matrix, cube.vertices[cube.faces[i].v2-1]);
@@ -155,15 +154,21 @@ function loop() {
 
         let normal = cross(line1, line2);
 
-        text.innerText = camera.pos.x + "\n" + camera.pos.y + "\n" + camera.pos.z;
-
         if (dot(normal, subVec3(nv1, camera.pos)) < 0) {
-            buffer.fillTriangle(v1, v2, v3, colors[i%6]);
+            //buffer.fillTriangle(v1, v2, v3, colors[i%6]);
+            c.fillStyle = "rgb(" + colors[i%6].r + ", " + colors[i%6].g + ", " + colors[i%6].b + ")";
+            c.beginPath();
+            c.moveTo(screen[0].x, screen[0].y);
+            c.lineTo(screen[1].x, screen[1].y);
+            c.lineTo(screen[2].x, screen[2].y);
+            c.fill();
         }
 
     }
 
-    buffer.draw(c);
+    //text.innerText = camera.pos.x + "\n" + camera.pos.y + "\n" + camera.pos.z;
+
+    //buffer.draw(c);
 }
 
 window.onmousemove = e => {

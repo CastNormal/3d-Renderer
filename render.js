@@ -142,34 +142,3 @@ export class Buffer {
         this.drawLine(p2.x, p2.y, p3.x, p3.y, color);
     }
 }
-
-export function getVertex(camera, point, fov, width, height) {
-
-    let fovRad = 1/Math.tan((fov * 0.5) * (180 / Math.PI));
-
-    let px = point.x - camera.pos.x;
-    let py = point.y - camera.pos.y;
-    let pz = point.z - camera.pos.z;
-
-    let cx = Math.cos(camera.rot.x);
-    let cy = Math.cos(camera.rot.y);
-    let cz = Math.cos(camera.rot.z);
-
-    let sx = Math.sin(camera.rot.x);
-    let sy = Math.sin(camera.rot.y);
-    let sz = Math.sin(camera.rot.z);
-
-    let dx = cy * (sz*py + cz*px) - sy*pz;
-    let dy = sx * (cy*pz + sy*(sz*py + cz*px)) + cx * (cz*py - sz*px);
-    let dz = cx * (cy*pz + sy*(sz*py + cz*px)) - sx * (cz*py - sz*px);
-
-    if (dz < 0) return;
-
-    let bx = (((height / width) * fovRad) * dx) / dz;
-    let by = (fovRad * dy) / dz;
-
-    bx = bx * width/2 + width/2;
-    by = by * height/2 + height/2;
-
-    return new Vector2(bx, by);
-}
