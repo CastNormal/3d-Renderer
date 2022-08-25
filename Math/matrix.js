@@ -11,7 +11,6 @@ export function mat4x4VecMult(mat, vec) {
     return new Vector3(x, y, z, w);
 }
 
-
 export function mat4x4Mult(m1, m2) {
 
     let matrix = Array.from({ length: 4 }, () => Array.from({ length: 4 }, () => 0));

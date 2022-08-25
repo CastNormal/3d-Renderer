@@ -31,12 +31,12 @@ export class Buffer {
         context.putImageData(this.#buffer, 0, 0);
     }
 
-    drawLine(x0, y0, x1, y1, color) {
+    drawLine(v1, v2, color) {
 
-        x0 = Math.round(x0);
-        y0 = Math.round(y0);
-        x1 = Math.round(x1);
-        y1 = Math.round(y1);
+        let x0 = Math.round(v1.x);
+        let y0 = Math.round(v1.y);
+        let x1 = Math.round(v2.x);
+        let y1 = Math.round(v2.y);
 
         let dx = Math.abs(x1 - x0);
         let dy = Math.abs(y1 - y0);

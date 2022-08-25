@@ -1,9 +1,10 @@
-import { Buffer } from  "./render.js"
+import { Buffer } from "./render.js"
 import { Vector2, Vector3, cross, subVec3, dot, addVec3 } from "./Math/vector.js"
 import { Camera } from "./Objects/camera.js"
 import { Cube } from "./Objects/mesh.js"
 import { Color, Black, White, Red, Green, Blue } from "./Math/color.js"
 import { mat4x4VecMult, mat4x4Mult, worldMatrix, projectionMatrix, screenMatrix, FPSview, pDivide } from "./Math/matrix.js"
+import { clipLine1, clipLine2 } from "./clipping.js"
 
 let canvas = document.getElementById("canvas");
 let c = canvas.getContext("2d");
@@ -59,7 +60,7 @@ function move() {
 
     if (left) {
         camera.pos.x -= mv;
-    }   
+    }
 
     if (right) {
         camera.pos.x += mv;
@@ -100,22 +101,23 @@ let colors = [
     new Color(rng(), rng(), rng()),
     new Color(rng(), rng(), rng()),
     new Color(rng(), rng(), rng()),
-]
+];
+
+
 
 let projection_matrix = projectionMatrix(near, far, fov, aspect_ratio);
 
 function loop() {
     window.requestAnimationFrame(loop);
 
-    xRot = (mouse.x / canvas.width - 0.5) * 8;
+    xRot = (mouse.x / canvas.width - 0.5) * 16;
     zRot = (mouse.y / canvas.height - 0.5) * 2;
-    //cube.rot.x += 0.01;
-    //cube.rot.z += 0.01;
+    text.innerText = xRot * 180 / Math.PI + ", " + zRot * 180 / Math.PI;
+    //text.innerText = camera.pos.x + "\n" + camera.pos.y + "\n" + camera.pos.z;
 
     move();
 
-    //buffer.clear(canvas.width, canvas.height, c);
-    c.clearRect(0, 0, canvas.width, canvas.height);
+    buffer.clear(canvas.width, canvas.height, c);
 
     let world_matrix = worldMatrix(cube);
     let view_matrix = FPSview(camera.pos, zRot, xRot);
@@ -123,18 +125,43 @@ function loop() {
 
     for (let i in cube.faces) {
         let v = [
-            mat4x4VecMult(fMatrix, cube.vertices[cube.faces[i].v1-1]),
-            mat4x4VecMult(fMatrix, cube.vertices[cube.faces[i].v2-1]),
-            mat4x4VecMult(fMatrix, cube.vertices[cube.faces[i].v3-1]),
+            mat4x4VecMult(fMatrix, cube.vertices[cube.faces[i].v1 - 1]),
+            mat4x4VecMult(fMatrix, cube.vertices[cube.faces[i].v2 - 1]),
+            mat4x4VecMult(fMatrix, cube.vertices[cube.faces[i].v3 - 1]),
         ];
 
-        if (v[0].z < -v[0].w || v[0].z > v[0].w || v[0].x < -v[0].w || v[0].x > v[0].w || v[0].y < -v[0].w || v[0].y > v[0].w) return;
-        if (v[1].z < -v[1].w || v[1].z > v[1].w || v[1].x < -v[1].w || v[1].x > v[1].w || v[1].y < -v[1].w || v[1].y > v[1].w) return;
-        if (v[2].z < -v[2].w || v[2].z > v[2].w || v[2].x < -v[2].w || v[2].x > v[2].w || v[2].y < -v[2].w || v[2].y > v[2].w) return;
+        let verts = [];
 
-        
+        let o_v0 = {...v[0]};
+        let o_v1 = {...v[1]};
+        let o_v2 = {...v[2]};
+
+        let l1 = clipLine2(v[0], v[1], text);
+        verts.push({...v[0]}, {...v[1]});
+
+        v[0] = {...o_v0};
+        v[1] = {...o_v1};
+        v[2] = {...o_v2};
+
+    
+        let l2 = clipLine2(v[1], v[2], text);
+        verts.push({...v[1]}, {...v[2]});
+
+        v[0] = {...o_v0};
+        v[1] = {...o_v1};
+        v[2] = {...o_v2};
+    
+        let l3 = clipLine2(v[2], v[0], text);
+        verts.push({...v[2]}, {...v[0]});
+
+
         for (let j of v) {
             pDivide(j);
+        }
+
+        for (let k in verts) {
+            pDivide(verts[k]);
+            verts[k] = mat4x4VecMult(screenMatrix(canvas.width, canvas.height), verts[k]);
         }
 
         let screen = [
@@ -145,9 +172,9 @@ function loop() {
 
 
 
-        let nv1 = mat4x4VecMult(world_matrix, cube.vertices[cube.faces[i].v1-1]);
-        let nv2 = mat4x4VecMult(world_matrix, cube.vertices[cube.faces[i].v2-1]);
-        let nv3 = mat4x4VecMult(world_matrix, cube.vertices[cube.faces[i].v3-1]);
+        let nv1 = mat4x4VecMult(world_matrix, cube.vertices[cube.faces[i].v1 - 1]);
+        let nv2 = mat4x4VecMult(world_matrix, cube.vertices[cube.faces[i].v2 - 1]);
+        let nv3 = mat4x4VecMult(world_matrix, cube.vertices[cube.faces[i].v3 - 1]);
 
         let line1 = subVec3(nv2, nv1);
         let line2 = subVec3(nv3, nv1);
@@ -155,20 +182,22 @@ function loop() {
         let normal = cross(line1, line2);
 
         if (dot(normal, subVec3(nv1, camera.pos)) < 0) {
-            //buffer.fillTriangle(v1, v2, v3, colors[i%6]);
-            c.fillStyle = "rgb(" + colors[i%6].r + ", " + colors[i%6].g + ", " + colors[i%6].b + ")";
-            c.beginPath();
-            c.moveTo(screen[0].x, screen[0].y);
-            c.lineTo(screen[1].x, screen[1].y);
-            c.lineTo(screen[2].x, screen[2].y);
-            c.fill();
+            if (l1) {
+                buffer.drawLine(verts[0], verts[1], Black);
+            }
+
+            if (l2) {
+                buffer.drawLine(verts[2], verts[3], Black);
+            }
+
+            if (l3) {
+                buffer.drawLine(verts[4], verts[5], Black);
+            }
         }
 
     }
 
-    //text.innerText = camera.pos.x + "\n" + camera.pos.y + "\n" + camera.pos.z;
-
-    //buffer.draw(c);
+    buffer.draw(c);
 }
 
 window.onmousemove = e => {
@@ -177,6 +206,6 @@ window.onmousemove = e => {
 }
 
 window.onkeydown = e => moveCamera(e);
-window.onkeyup= e => moveCamera(e);
+window.onkeyup = e => moveCamera(e);
 
 loop();
