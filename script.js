@@ -4,7 +4,7 @@ import { Camera } from "./Objects/camera.js"
 import { Cube } from "./Objects/mesh.js"
 import { Color, Black, White, Red, Green, Blue } from "./Math/color.js"
 import { mat4x4VecMult, mat4x4Mult, worldMatrix, projectionMatrix, screenMatrix, FPSview, pDivide } from "./Math/matrix.js"
-import { clipLine1, clipLine2 } from "./clipping.js"
+import { nearLineClip, LineClip2d } from "./clipping.js"
 
 let canvas = document.getElementById("canvas");
 let c = canvas.getContext("2d");
@@ -80,7 +80,6 @@ var mouse = new Vector2(0, 0);
 
 let buffer = new Buffer(c, canvas.width, canvas.height);
 let camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, 0));
-
 let cube = new Cube(new Vector3(0, 0, 5), new Vector3(0, 0, 0), 1);
 
 let xRot = 0, zRot = 0;
@@ -136,7 +135,7 @@ function loop() {
         let o_v1 = {...v[1]};
         let o_v2 = {...v[2]};
 
-        let l1 = clipLine2(v[0], v[1], text);
+        let l1 = nearLineClip(v[0], v[1], new Vector3(0, 0, near));
         verts.push({...v[0]}, {...v[1]});
 
         v[0] = {...o_v0};
@@ -144,14 +143,14 @@ function loop() {
         v[2] = {...o_v2};
 
     
-        let l2 = clipLine2(v[1], v[2], text);
+        let l2 = nearLineClip(v[1], v[2], new Vector3(0, 0, near));
         verts.push({...v[1]}, {...v[2]});
 
         v[0] = {...o_v0};
         v[1] = {...o_v1};
         v[2] = {...o_v2};
     
-        let l3 = clipLine2(v[2], v[0], text);
+        let l3 = nearLineClip(v[2], v[0], new Vector3(0, 0, near));
         verts.push({...v[2]}, {...v[0]});
 
 
@@ -183,15 +182,15 @@ function loop() {
 
         if (dot(normal, subVec3(nv1, camera.pos)) < 0) {
             if (l1) {
-                buffer.drawLine(verts[0], verts[1], Black);
+                if (LineClip2d(verts[0], verts[1], 0, 0, canvas.width, canvas.height)) buffer.drawLine(verts[0], verts[1], Black);
             }
 
             if (l2) {
-                buffer.drawLine(verts[2], verts[3], Black);
+                if (LineClip2d(verts[2], verts[3], 0, 0, canvas.width, canvas.height)) buffer.drawLine(verts[2], verts[3], Black);
             }
 
             if (l3) {
-                buffer.drawLine(verts[4], verts[5], Black);
+                if (LineClip2d(verts[4], verts[5], 0, 0, canvas.width, canvas.height)) buffer.drawLine(verts[4], verts[5], Black);
             }
         }
 
