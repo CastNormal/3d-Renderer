@@ -2,7 +2,7 @@ import { Buffer } from "./render.js"
 import { Vector2, Vector3, cross, subVec3, dot, addVec3 } from "./Math/vector.js"
 import { Camera } from "./Objects/camera.js"
 import { Cube } from "./Objects/mesh.js"
-import { Color, Black, White, Red, Green, Blue } from "./Math/color.js"
+import { Color, Black, White, Red, Green, Blue } from "./Math/Util/color.js"
 import { mat4x4VecMult, mat4x4Mult, worldMatrix, projectionMatrix, screenMatrix, FPSview, pDivide } from "./Math/matrix.js"
 import { nearLineClip, LineClip2d } from "./clipping.js"
 
@@ -135,7 +135,7 @@ function loop() {
         let o_v1 = {...v[1]};
         let o_v2 = {...v[2]};
 
-        let l1 = nearLineClip(v[0], v[1], new Vector3(0, 0, near));
+        let l1 = nearLineClip(v[0], v[1], near);
         verts.push({...v[0]}, {...v[1]});
 
         v[0] = {...o_v0};
@@ -143,20 +143,16 @@ function loop() {
         v[2] = {...o_v2};
 
     
-        let l2 = nearLineClip(v[1], v[2], new Vector3(0, 0, near));
+        let l2 = nearLineClip(v[1], v[2], near);
         verts.push({...v[1]}, {...v[2]});
 
         v[0] = {...o_v0};
         v[1] = {...o_v1};
         v[2] = {...o_v2};
     
-        let l3 = nearLineClip(v[2], v[0], new Vector3(0, 0, near));
+        let l3 = nearLineClip(v[2], v[0], near);
         verts.push({...v[2]}, {...v[0]});
 
-
-        for (let j of v) {
-            pDivide(j);
-        }
 
         for (let k in verts) {
             pDivide(verts[k]);

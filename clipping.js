@@ -4,12 +4,18 @@ function lerp(a, b, t) {
     return a * (1 - t) + b * t;
 }
 
+function lineClip(d1, d2, v1, v2) {
+    let t = d2 / (d2 - d1);
+    return lerpVec3(v2, v1, t);
+}
+
 export function nearLineClip(v1, v2, near) {
 
-    const near_n = normalize(near);
+    let near_v = new Vector3(0, 0, near);
+    let near_n = normalize(near_v);
 
-        let d1 = dot(v1, near_n) - dot(near_n, near);
-        let d2 = dot(v2, near_n) - dot(near_n, near);
+        let d1 = dot(v1, near_n) - dot(near_n, near_v);
+        let d2 = dot(v2, near_n) - dot(near_n, near_v);
 
         if (d1 < 0 && d2 < 0) return false;
         if (d1 > 0 && d2 > 0) return true;
@@ -33,6 +39,50 @@ export function nearLineClip(v1, v2, near) {
         
     }
     return true;
+}
+
+export function nearTriClip(v1, v2, v3, vertices) {
+
+    const near = new Vector3(0, 0, 1);
+    const near_n = normalize(near);
+
+        let d1 = dot(v1, near_n) - dot(near_n, near);
+        let d2 = dot(v2, near_n) - dot(near_n, near);
+        let d3 = dot(v3, near_n) - dot(near_n, near);
+        vertices.push(v1, v2, v3);
+        return true;
+        if (d1 > 0 && d2 > 0 && d3 > 0) {
+            vertices.push(v1, v2, v3);
+            return true;
+        } else if (d1 < 0 && d2 < 0 && d3 < 0) { 
+            return false;
+        } else if (d1 ^ d2 ^ d3) { //only one vertex passes
+            if (d1 > 0) {
+                let t = d2 / (d2 - d1);
+                let _v2 = lerpVec3(v1, v2, t);
+            }
+        } else { //two veticies pass
+        }
+
+
+        if (d1 < 0) {
+            let t = d1 / (d1 - d2);
+            //v1.x = lerp(v1.x, v2.x, t);
+            //v1.y = lerp(v1.y, v2.y, t);
+            //v1.z = lerp(v1.z, v2.z, t);
+            //v1.w = lerp(v1.w, v2.w, t);
+            return lerpVec3(v1, v2, t);
+
+        } else {
+            let t = d2 / (d2 - d1);
+            //v2.x = lerp(v2.x, v1.x, t);
+            //v2.y = lerp(v2.y, v1.y, t);
+            //v2.z = lerp(v2.z, v1.z, t);
+            //v2.w = lerp(v2.w, v1.w, t);
+            return lerpVec3(v2, v1, t);
+
+        
+    }
 }
 
 export function LineClip2d(v1, v2, bx, by, bwidth, bheight) {

@@ -1,6 +1,6 @@
 import { Vector2, Vector3 } from "./Math/vector.js";
 import { Cube, HexPrism, Mesh, Tri } from "./Objects/mesh.js";
-import { Color } from "./Math/color.js";
+import { Color } from "./Math/Util/color.js";
 
 export class Buffer {
     #buffer;
