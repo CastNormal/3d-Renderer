@@ -87,7 +87,7 @@ export class Vector3 {
     lerp(v, t) {
         if (typeof v !== Vector3) throw Error('expected type ' + Vector3 + ', got ' + typeof v);
         if (typeof t !== Number) throw Error('expected type ' + Number + ', got ' + typeof t);
-        return new Vector3(lerp(this.x, v.x, t), lerp(this.y, v.y, t), lerp(this.z, v.z, t));
+        return new Vector3(lerp(this.x, v.x, t), lerp(this.y, v.y, t), lerp(this.z, v.z, t), lerp(this.w, v.w, t));
     }
 
     dot(v) {
@@ -103,7 +103,15 @@ export class Vector3 {
 
 	    return new Vector3(vx, vy, vz);
     }
+
+    normal() {
+        let l = Math.sqrt(this.dot(this));
+        if (l != 0) return new Vector3(v.x / l, v.y / l, v.z / l);
+        
+        return v;
+    }
 }
+
 
 export function subVec3(v1, v) {
     return new Vector3(v1.x - v.x, v1.y - v.y, v1.z - v.z);
