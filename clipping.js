@@ -4,11 +4,6 @@ function lerp(a, b, t) {
     return a * (1 - t) + b * t;
 }
 
-function lineClip(d1, d2, v1, v2) {
-    let t = d2 / (d2 - d1);
-    return lerpVec3(v2, v1, t);
-}
-
 export function nearLineClip(v1, v2, near) {
 
     let near_v = new Vector3(0, 0, near);
@@ -41,47 +36,72 @@ export function nearLineClip(v1, v2, near) {
     return true;
 }
 
-export function nearTriClip(v1, v2, v3, vertices) {
+function lineClip(v1, v2, d1, d2) {
+    let t = d1 / (d1 - d2);
+    return lerpVec3(v1, v2, t);
+}
 
-    const near = new Vector3(0, 0, 1);
+function oneVertClip(v1, v2, v3, d1, d2, d3) { //v1 is the vert that passes test
+    let t2 = d2 / (d2 - d1);
+    let t3 = d3 / (d3 - d1);
+
+    return [ v1, lerpVec3(v2, v1, t2), lerpVec3(v3, v1, t3) ];
+}
+
+function twoVertClip(v1, v2, v3, d1, d2, d3) { //v1 and v2 are the verts that pass
+    let t2 = d1 / (d1 - d2);
+    let t3 = d1 / (d1 - d3);
+
+    return [v1, v2, lerpVec3(v1, v2, t2), lerpVec3(v1, v3, t3) ];
+}
+
+export function nearTriClip(v1, v2, v3, vertices, text) {
+
+    const near = new Vector3(0, 0, 0.1);
     const near_n = normalize(near);
 
-        let d1 = dot(v1, near_n) - dot(near_n, near);
-        let d2 = dot(v2, near_n) - dot(near_n, near);
-        let d3 = dot(v3, near_n) - dot(near_n, near);
+    let d1 = dot(v1, near_n) - dot(near_n, near);
+    let d2 = dot(v2, near_n) - dot(near_n, near);
+    let d3 = dot(v3, near_n) - dot(near_n, near);
+
+    if (d1 > 0 && d2 > 0 && d3 > 0) {
+        text.innerText = "three";
         vertices.push(v1, v2, v3);
         return true;
-        if (d1 > 0 && d2 > 0 && d3 > 0) {
-            vertices.push(v1, v2, v3);
-            return true;
-        } else if (d1 < 0 && d2 < 0 && d3 < 0) { 
-            return false;
-        } else if (d1 ^ d2 ^ d3) { //only one vertex passes
-            if (d1 > 0) {
-                let t = d2 / (d2 - d1);
-                let _v2 = lerpVec3(v1, v2, t);
-            }
-        } else { //two veticies pass
-        }
 
+    } else if (d1 < 0 && d2 < 0 && d3 < 0) {
+        text.innerText = "none";
+        return false;
+        
+    } else if (d1 ^ d2 ^ d3) { //only one vertex passes
+        text.innerText = "one";
+        if (d1 > 0) {
+            for (let i of oneVertClip(v1, v2, v3, d1, d2, d3)) vertices.push(i);
+            return true;
+            
+        } else if (d2 > 0) {
+            for (let i of oneVertClip(v2, v1, v3, d2, d1, d3)) vertices.push(i);
+            return true;
+            
+        } else if (d3 > 0) {
+            for (let i of oneVertClip(v3, v1, v2, d3, d1, d2)) vertices.push(i);
+            return true;
+        }
+    } else { //two vertices pass
+        text.innerText = "two";
 
         if (d1 < 0) {
-            let t = d1 / (d1 - d2);
-            //v1.x = lerp(v1.x, v2.x, t);
-            //v1.y = lerp(v1.y, v2.y, t);
-            //v1.z = lerp(v1.z, v2.z, t);
-            //v1.w = lerp(v1.w, v2.w, t);
-            return lerpVec3(v1, v2, t);
+            for (let i of twoVertClip(v2, v3, v1, d2, d3, d1)) vertices.push(i);
+            return true;
+        } else if (d2 < 0) {
+            for (let i of twoVertClip(v1, v3, v2, d1, d3, d2)) vertices.push(i);
+            return true;
+        } else if (d3 < 0) {
+            for (let i of twoVertClip(v1, v2, v3, d1, d2, d3)) vertices.push(i);
+            return true;
+        }
 
-        } else {
-            let t = d2 / (d2 - d1);
-            //v2.x = lerp(v2.x, v1.x, t);
-            //v2.y = lerp(v2.y, v1.y, t);
-            //v2.z = lerp(v2.z, v1.z, t);
-            //v2.w = lerp(v2.w, v1.w, t);
-            return lerpVec3(v2, v1, t);
-
-        
+        return false;
     }
 }
 

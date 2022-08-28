@@ -4,7 +4,7 @@ import { Camera } from "./Objects/camera.js"
 import { Cube } from "./Objects/mesh.js"
 import { Color, Black, White, Red, Green, Blue } from "./Math/Util/color.js"
 import { mat4x4VecMult, mat4x4Mult, worldMatrix, projectionMatrix, screenMatrix, FPSview, pDivide } from "./Math/matrix.js"
-import { nearLineClip, LineClip2d } from "./clipping.js"
+import { nearLineClip, LineClip2d, nearTriClip } from "./clipping.js"
 
 let canvas = document.getElementById("canvas");
 let c = canvas.getContext("2d");
@@ -111,7 +111,7 @@ function loop() {
 
     xRot = (mouse.x / canvas.width - 0.5) * 16;
     zRot = (mouse.y / canvas.height - 0.5) * 2;
-    text.innerText = xRot * 180 / Math.PI + ", " + zRot * 180 / Math.PI;
+    //text.innerText = xRot * 180 / Math.PI + ", " + zRot * 180 / Math.PI;
     //text.innerText = camera.pos.x + "\n" + camera.pos.y + "\n" + camera.pos.z;
 
     move();
@@ -123,6 +123,7 @@ function loop() {
     let fMatrix = mat4x4Mult(mat4x4Mult(world_matrix, view_matrix), projection_matrix);
 
     for (let i in cube.faces) {
+        i = 5;
         let v = [
             mat4x4VecMult(fMatrix, cube.vertices[cube.faces[i].v1 - 1]),
             mat4x4VecMult(fMatrix, cube.vertices[cube.faces[i].v2 - 1]),
@@ -131,39 +132,12 @@ function loop() {
 
         let verts = [];
 
-        let o_v0 = {...v[0]};
-        let o_v1 = {...v[1]};
-        let o_v2 = {...v[2]};
-
-        let l1 = nearLineClip(v[0], v[1], near);
-        verts.push({...v[0]}, {...v[1]});
-
-        v[0] = {...o_v0};
-        v[1] = {...o_v1};
-        v[2] = {...o_v2};
-
-    
-        let l2 = nearLineClip(v[1], v[2], near);
-        verts.push({...v[1]}, {...v[2]});
-
-        v[0] = {...o_v0};
-        v[1] = {...o_v1};
-        v[2] = {...o_v2};
-    
-        let l3 = nearLineClip(v[2], v[0], near);
-        verts.push({...v[2]}, {...v[0]});
-
+        if (!nearTriClip(v[0], v[1], v[2], verts, text)) return;
 
         for (let k in verts) {
             pDivide(verts[k]);
             verts[k] = mat4x4VecMult(screenMatrix(canvas.width, canvas.height), verts[k]);
         }
-
-        let screen = [
-            mat4x4VecMult(screenMatrix(canvas.width, canvas.height), v[0]),
-            mat4x4VecMult(screenMatrix(canvas.width, canvas.height), v[1]),
-            mat4x4VecMult(screenMatrix(canvas.width, canvas.height), v[2])
-        ];
 
 
 
@@ -177,22 +151,19 @@ function loop() {
         let normal = cross(line1, line2);
 
         if (dot(normal, subVec3(nv1, camera.pos)) < 0) {
-            if (l1) {
-                if (LineClip2d(verts[0], verts[1], 0, 0, canvas.width, canvas.height)) buffer.drawLine(verts[0], verts[1], Black);
+            c.beginPath();
+            c.moveTo(verts[0].x, verts[0].y);
+
+            for (let i = 1; i < verts.length; i++) {
+                c.lineTo(verts[i].x, verts[i].y);
             }
 
-            if (l2) {
-                if (LineClip2d(verts[2], verts[3], 0, 0, canvas.width, canvas.height)) buffer.drawLine(verts[2], verts[3], Black);
-            }
-
-            if (l3) {
-                if (LineClip2d(verts[4], verts[5], 0, 0, canvas.width, canvas.height)) buffer.drawLine(verts[4], verts[5], Black);
-            }
+            c.fill();
         }
-
+        break;
     }
 
-    buffer.draw(c);
+    //buffer.draw(c);
 }
 
 window.onmousemove = e => {
