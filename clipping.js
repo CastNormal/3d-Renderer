@@ -36,11 +36,6 @@ export function nearLineClip(v1, v2, near) {
     return true;
 }
 
-function lineClip(v1, v2, d1, d2) {
-    let t = d1 / (d1 - d2);
-    return lerpVec3(v1, v2, t);
-}
-
 function oneVertClip(v1, v2, v3, d1, d2, d3) { //v1 is the vert that passes test
     let t2 = d2 / (d2 - d1);
     let t3 = d3 / (d3 - d1);
@@ -49,10 +44,11 @@ function oneVertClip(v1, v2, v3, d1, d2, d3) { //v1 is the vert that passes test
 }
 
 function twoVertClip(v1, v2, v3, d1, d2, d3) { //v1 and v2 are the verts that pass
+
     let t2 = d1 / (d1 - d2);
     let t3 = d1 / (d1 - d3);
 
-    return [v1, v2, lerpVec3(v1, v2, t2), lerpVec3(v1, v3, t3) ];
+    return [ v2, v3, lerpVec3(v1, v3, t3), lerpVec3(v1, v2, t2) ];
 }
 
 export function nearTriClip(v1, v2, v3, vertices, text) {
@@ -64,17 +60,14 @@ export function nearTriClip(v1, v2, v3, vertices, text) {
     let d2 = dot(v2, near_n) - dot(near_n, near);
     let d3 = dot(v3, near_n) - dot(near_n, near);
 
-    if (d1 > 0 && d2 > 0 && d3 > 0) {
-        text.innerText = "three";
+    if (d1 > 0 && d2 > 0 && d3 > 0) { //All pass
         vertices.push(v1, v2, v3);
         return true;
 
-    } else if (d1 < 0 && d2 < 0 && d3 < 0) {
-        text.innerText = "none";
+    } else if (d1 < 0 && d2 < 0 && d3 < 0) { //None Pass
         return false;
         
-    } else if (d1 ^ d2 ^ d3) { //only one vertex passes
-        text.innerText = "one";
+    } else if (d1 > 0 ^ d2 > 0 ^ d3 > 0) { //only one vertex passes
         if (d1 > 0) {
             for (let i of oneVertClip(v1, v2, v3, d1, d2, d3)) vertices.push(i);
             return true;
@@ -88,20 +81,16 @@ export function nearTriClip(v1, v2, v3, vertices, text) {
             return true;
         }
     } else { //two vertices pass
-        text.innerText = "two";
-
         if (d1 < 0) {
-            for (let i of twoVertClip(v2, v3, v1, d2, d3, d1)) vertices.push(i);
-            return true;
-        } else if (d2 < 0) {
-            for (let i of twoVertClip(v1, v3, v2, d1, d3, d2)) vertices.push(i);
-            return true;
-        } else if (d3 < 0) {
             for (let i of twoVertClip(v1, v2, v3, d1, d2, d3)) vertices.push(i);
             return true;
+        } else if (d2 < 0) {
+            for (let i of twoVertClip(v2, v1, v3, d2, d1, d3)) vertices.push(i);
+            return true;
+        } else if (d3 < 0) {
+            for (let i of twoVertClip(v3, v1, v2, d3, d1, d2)) vertices.push(i);
+            return true;
         }
-
-        return false;
     }
 }
 

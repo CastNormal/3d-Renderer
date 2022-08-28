@@ -111,7 +111,7 @@ function loop() {
 
     xRot = (mouse.x / canvas.width - 0.5) * 16;
     zRot = (mouse.y / canvas.height - 0.5) * 2;
-    //text.innerText = xRot * 180 / Math.PI + ", " + zRot * 180 / Math.PI;
+    text.innerText = xRot * 180 / Math.PI + ", " + zRot * 180 / Math.PI;
     //text.innerText = camera.pos.x + "\n" + camera.pos.y + "\n" + camera.pos.z;
 
     move();
@@ -123,7 +123,6 @@ function loop() {
     let fMatrix = mat4x4Mult(mat4x4Mult(world_matrix, view_matrix), projection_matrix);
 
     for (let i in cube.faces) {
-        i = 5;
         let v = [
             mat4x4VecMult(fMatrix, cube.vertices[cube.faces[i].v1 - 1]),
             mat4x4VecMult(fMatrix, cube.vertices[cube.faces[i].v2 - 1]),
@@ -133,7 +132,7 @@ function loop() {
         let verts = [];
 
         if (!nearTriClip(v[0], v[1], v[2], verts, text)) return;
-
+        //console.log(verts.length)
         for (let k in verts) {
             pDivide(verts[k]);
             verts[k] = mat4x4VecMult(screenMatrix(canvas.width, canvas.height), verts[k]);
@@ -151,7 +150,10 @@ function loop() {
         let normal = cross(line1, line2);
 
         if (dot(normal, subVec3(nv1, camera.pos)) < 0) {
+
+            
             c.beginPath();
+            
             c.moveTo(verts[0].x, verts[0].y);
 
             for (let i = 1; i < verts.length; i++) {
@@ -160,7 +162,6 @@ function loop() {
 
             c.fill();
         }
-        break;
     }
 
     //buffer.draw(c);
