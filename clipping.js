@@ -51,7 +51,7 @@ function twoVertClip(v1, v2, v3, d1, d2, d3) { //v1 and v2 are the verts that pa
     return [ v2, v3, lerpVec3(v1, v3, t3), lerpVec3(v1, v2, t2) ];
 }
 
-export function nearTriClip(v1, v2, v3, vertices, text) {
+export function nearTriClip(v1, v2, v3, vertices) {
 
     const near = new Vector3(0, 0, 0.1);
     const near_n = normalize(near);

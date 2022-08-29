@@ -24,10 +24,11 @@ export function mat4x4Mult(m1, m2) {
 }
 
 export function pDivide(v) {
-    if (v.w !== 0 && v.w !== 1) {
+    if (v.w !== 0) {
         v.x /= v.w;
         v.y /= v.w;
         v.z /= v.w;
+        
     }
 }
 
@@ -111,7 +112,7 @@ export function projectionMatrix(near, far, fov, aspect_ratio) {
     let m1 = aspect_ratio * rFov;
     let m2 = rFov;
     let m3 = far / (far - near);
-    let m4 = -far * near / (far - near);
+    let m4 = -(far * near) / (far - near);
 
     return [
         [ m1,  0,  0,  0  ],

@@ -100,34 +100,39 @@ export class HexPrism extends Mesh {
     }
 }
 
-export class Teapot extends Mesh {
-    constructor(position, rotation, scale) {
+export class Obj extends Mesh {
+    constructor(file_name, position, rotation, scale) {
         super(position, rotation, scale);
 
-        this.vertices = [
-            
-        ];
-    
-        this.faces = [
-            
-        ];
-    }
-}
+        fetch(file_name).then(response => {
+            return response.text();
+        }).then((data) => {
+            for (let i = 0; i < data.length; i++) {
+                if (data[i] == 'v' && data[i+1] == ' ') {
+                    i += 2;
+                    let string = "";
+                    while (data[i] !== '\n') {
+                        string += data[i];
+                        i++;
+                    }
 
-export class Plane extends Mesh {
-    constructor(position, rotation, scale) {
-        super(position, rotation, scale);
+                    let nums = string.split(' ');
 
-        this.vertices = [
-            new Vector3(1, 1, 1),
-            new Vector3(1, -1, 1),
-            new Vector3(-1, 1, 1),
-            new Vector3(-1, -1, 1)
-        ];
-    
-        this.faces = [
-            new Tri(1, 2, 3),
-            new Tri(2, 3, 4),
-        ];
+                    this.vertices.push(new Vector3(nums[0], nums[1], nums[2]));
+                } else if (data[i] == 'f' && data[i+1] == ' ') {
+                    i += 2;
+                    let string = "";
+                    while (data[i] !== '\n') {
+                        string += data[i];
+                        i++;
+                    }
+
+                    let nums = string.split(' ');
+
+                    this.faces.push(new Tri(nums[0], nums[1], nums[2]));
+                }
+            }
+        });
+
     }
 }

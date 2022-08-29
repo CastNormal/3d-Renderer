@@ -1,8 +1,8 @@
 import { Buffer } from "./render.js"
 import { Vector2, Vector3, cross, subVec3, dot, addVec3 } from "./Math/vector.js"
 import { Camera } from "./Objects/camera.js"
-import { Cube } from "./Objects/mesh.js"
-import { Color, Black, White, Red, Green, Blue } from "./Math/Util/color.js"
+import { Cube, Obj } from "./Objects/mesh.js"
+import { Color, Black, White, Red, Green, Blue } from "./Util/color.js"
 import { mat4x4VecMult, mat4x4Mult, worldMatrix, projectionMatrix, screenMatrix, FPSview, pDivide } from "./Math/matrix.js"
 import { nearLineClip, LineClip2d, nearTriClip } from "./clipping.js"
 
@@ -79,14 +79,17 @@ var mouse = new Vector2(0, 0);
 
 
 let buffer = new Buffer(c, canvas.width, canvas.height);
-let camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, 0));
-let cube = new Cube(new Vector3(0, 0, 5), new Vector3(0, 0, 0), 1);
+
+
+let camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, 0))
+//let cube = new Cube(new Vector3(0, 0, 5), new Vector3(0, 0, 0), 1);
+let cube = new Obj("ico.obj", new Vector3(0, 0, 5), new Vector3(0, 0, 0), 2);
 
 let xRot = 0, zRot = 0;
 
 const near = 0.1;
 const far = 1000;
-const fov = 90;
+const fov = 60;
 const aspect_ratio = canvas.height / canvas.width;
 
 function rng() {
@@ -111,12 +114,12 @@ function loop() {
 
     xRot = (mouse.x / canvas.width - 0.5) * 16;
     zRot = (mouse.y / canvas.height - 0.5) * 2;
-    text.innerText = xRot * 180 / Math.PI + ", " + zRot * 180 / Math.PI;
-    //text.innerText = camera.pos.x + "\n" + camera.pos.y + "\n" + camera.pos.z;
+    text.innerText = camera.pos.x + "\n" + camera.pos.y + "\n" + camera.pos.z;
 
     move();
 
     buffer.clear(canvas.width, canvas.height, c);
+    buffer.clearDepthBuffer();
 
     let world_matrix = worldMatrix(cube);
     let view_matrix = FPSview(camera.pos, zRot, xRot);
@@ -124,47 +127,30 @@ function loop() {
 
     for (let i in cube.faces) {
         let v = [
-            mat4x4VecMult(fMatrix, cube.vertices[cube.faces[i].v1 - 1]),
-            mat4x4VecMult(fMatrix, cube.vertices[cube.faces[i].v2 - 1]),
-            mat4x4VecMult(fMatrix, cube.vertices[cube.faces[i].v3 - 1]),
+            mat4x4VecMult(fMatrix, cube.vertices[cube.faces[i].v1]),
+            mat4x4VecMult(fMatrix, cube.vertices[cube.faces[i].v2]),
+            mat4x4VecMult(fMatrix, cube.vertices[cube.faces[i].v3]),
         ];
 
         let verts = [];
 
-        if (!nearTriClip(v[0], v[1], v[2], verts, text)) return;
-        //console.log(verts.length)
+        if (!nearTriClip(v[0], v[1], v[2], verts)) return;
+
         for (let k in verts) {
             pDivide(verts[k]);
-            verts[k] = mat4x4VecMult(screenMatrix(canvas.width, canvas.height), verts[k]);
+            //verts[k] = mat4x4VecMult(screenMatrix(canvas.width, canvas.height), verts[k]);
+            verts[k].x = verts[k].x * canvas.width / 2 + canvas.width / 2;
+            verts[k].y = verts[k].y * -canvas.height / 2 + canvas.height / 2;
         }
 
-
-
-        let nv1 = mat4x4VecMult(world_matrix, cube.vertices[cube.faces[i].v1 - 1]);
-        let nv2 = mat4x4VecMult(world_matrix, cube.vertices[cube.faces[i].v2 - 1]);
-        let nv3 = mat4x4VecMult(world_matrix, cube.vertices[cube.faces[i].v3 - 1]);
-
-        let line1 = subVec3(nv2, nv1);
-        let line2 = subVec3(nv3, nv1);
-
-        let normal = cross(line1, line2);
-
-        if (dot(normal, subVec3(nv1, camera.pos)) < 0) {
-
-            
-            c.beginPath();
-            
-            c.moveTo(verts[0].x, verts[0].y);
-
-            for (let i = 1; i < verts.length; i++) {
-                c.lineTo(verts[i].x, verts[i].y);
-            }
-
-            c.fill();
+        if (verts.length == 3) buffer.fillTriangle(verts[0], verts[1], verts[2], colors[i % 6]);
+        else {
+            buffer.fillTriangle(verts[0], verts[1], verts[2], colors[i % 6]);
+            buffer.fillTriangle(verts[2], verts[3], verts[0], colors[i % 6]);
         }
     }
 
-    //buffer.draw(c);
+    buffer.draw(c);
 }
 
 window.onmousemove = e => {
