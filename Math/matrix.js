@@ -130,7 +130,7 @@ export function screenMatrix(width, height) {
     return [
         [  w,  0,  0,  0  ],
         [  0, -h,  0,  0  ],
-        [  0,  0,  0,  0  ],
+        [  0,  0,  1,  0  ],
         [  w,  h,  0,  0  ],
     ];
 }

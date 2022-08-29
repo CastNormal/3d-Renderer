@@ -27,7 +27,7 @@ export class Buffer {
             return;
         }
 
-        if (z > this.#zbuffer[y * this.#width + x]) return;
+        if (z >= this.#zbuffer[y * this.#width + x]) return;
         //console.log(z, this.#zbuffer[y * this.#width + x]);
         
         this.#zbuffer[y * this.#width + x] = z;
@@ -171,7 +171,7 @@ export class Buffer {
 
     clearDepthBuffer() {
         for (let i = 0; i < this.#zbuffer.length; i++) {
-            this.#zbuffer[i] = Infinity;
+            this.#zbuffer[i] = 1;
         }
     }
 

@@ -38,18 +38,18 @@ export class Cube extends Mesh {
         ];
     
         this.faces = [
-            new Tri(5, 3, 1),
-            new Tri(3, 8, 4),
-            new Tri(7, 6, 8),
-            new Tri(2, 8, 6),
-            new Tri(1, 4, 2),
-            new Tri(5, 2, 6),
-            new Tri(5, 7, 3),
-            new Tri(3, 7, 8),
-            new Tri(7, 5, 6),
-            new Tri(2, 4, 8),
-            new Tri(1, 3, 4),
-            new Tri(5, 1, 2)
+            new Tri(4, 2, 0),
+            new Tri(2, 7, 3),
+            new Tri(6, 5, 7),
+            new Tri(1, 7, 5),
+            new Tri(0, 3, 1),
+            new Tri(4, 1, 5),
+            new Tri(4, 6, 2),
+            new Tri(2, 6, 7),
+            new Tri(6, 4, 5),
+            new Tri(1, 3, 7),
+            new Tri(0, 2, 3),
+            new Tri(4, 0, 1)
         ];
     }
 }

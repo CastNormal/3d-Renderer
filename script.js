@@ -82,8 +82,8 @@ let buffer = new Buffer(c, canvas.width, canvas.height);
 
 
 let camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, 0))
-//let cube = new Cube(new Vector3(0, 0, 5), new Vector3(0, 0, 0), 1);
-let cube = new Obj("ico.obj", new Vector3(0, 0, 5), new Vector3(0, 0, 0), 2);
+let cube = new Cube(new Vector3(0, 0, 5), new Vector3(0, 0, 0), 1);
+//let cube = new Obj("monke.obj", new Vector3(0, 0, 5), new Vector3(0, 0, 0), 1);
 
 let xRot = 0, zRot = 0;
 
