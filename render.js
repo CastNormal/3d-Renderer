@@ -1,5 +1,5 @@
 import { Vector2, Vector3 } from "./Math/vector.js";
-import { Cube, HexPrism, Mesh, Tri } from "./Objects/mesh.js";
+import { Cube, Mesh, Tri } from "./Objects/mesh.js";
 import { Color } from "./Util/color.js";
 
 function lerp(a, b, t) {
@@ -9,6 +9,8 @@ function lerp(a, b, t) {
 export class Buffer {
     #buffer;
     #zbuffer;
+    #context;
+
     #width;
     #height;
 
@@ -16,6 +18,7 @@ export class Buffer {
         this.#width = width;
         this.#height = height;
 
+        this.#context = context;
         this.#buffer = context.createImageData(width, height);
         this.#zbuffer = new Array(width * height);
     }
@@ -38,8 +41,8 @@ export class Buffer {
         this.#buffer.data[i + 3] = color.alpha;
     }
 
-    draw(context) {
-        context.putImageData(this.#buffer, 0, 0);
+    draw() {
+        this.#context.putImageData(this.#buffer, 0, 0);
     }
 /*
     drawLine(v1, v2, color) {
@@ -91,7 +94,6 @@ export class Buffer {
 
         for (let x = x0; x <= x1; x++) {
             this.setPixel(x, y, lerp(z0, z1, (x - x0) / length), color);
-            //console.log((x - x0) / (x1 - x0));
         }
     }
 
@@ -175,8 +177,8 @@ export class Buffer {
         }
     }
 
-    clear(width, height, context) {
-        context.clearRect(0, 0, width, height);
-        this.#buffer = context.getImageData(0, 0, width, height);
+    clear(width, height) {
+        this.#context.clearRect(0, 0, width, height);
+        this.#buffer = this.#context.getImageData(0, 0, width, height);
     }
 }

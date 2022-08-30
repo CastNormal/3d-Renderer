@@ -1,10 +1,10 @@
 import { Buffer } from "./render.js"
-import { Vector2, Vector3, cross, subVec3, dot, addVec3 } from "./Math/vector.js"
+import { Vector2, Vector3 } from "./Math/vector.js"
 import { Camera } from "./Objects/camera.js"
 import { Cube, Obj } from "./Objects/mesh.js"
-import { Color, Black, White, Red, Green, Blue } from "./Util/color.js"
+import { Color } from "./Util/color.js"
 import { mat4x4VecMult, mat4x4Mult, worldMatrix, projectionMatrix, screenMatrix, FPSview, pDivide } from "./Math/matrix.js"
-import { nearLineClip, LineClip2d, nearTriClip } from "./clipping.js"
+import { nearTriClip } from "./clipping.js"
 
 let canvas = document.getElementById("canvas");
 let c = canvas.getContext("2d");
@@ -82,13 +82,13 @@ let buffer = new Buffer(c, canvas.width, canvas.height);
 
 
 let camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, 0))
-let cube = new Cube(new Vector3(0, 0, 5), new Vector3(0, 0, 0), 1);
-//let cube = new Obj("monke.obj", new Vector3(0, 0, 5), new Vector3(0, 0, 0), 1);
+//let cube = new Cube(new Vector3(0, 0, 5), new Vector3(0, 0, 0), 1);
+let cube = new Obj("Iplanes.obj", new Vector3(0, 0, 5), new Vector3(0, 0, 0), 1);
 
 let xRot = 0, zRot = 0;
 
-const near = 0.1;
-const far = 1000;
+const near = 0.01;
+const far = 100000;
 const fov = 60;
 const aspect_ratio = canvas.height / canvas.width;
 
@@ -114,11 +114,10 @@ function loop() {
 
     xRot = (mouse.x / canvas.width - 0.5) * 16;
     zRot = (mouse.y / canvas.height - 0.5) * 2;
-    text.innerText = camera.pos.x + "\n" + camera.pos.y + "\n" + camera.pos.z;
 
     move();
 
-    buffer.clear(canvas.width, canvas.height, c);
+    buffer.clear(canvas.width, canvas.height);
     buffer.clearDepthBuffer();
 
     let world_matrix = worldMatrix(cube);
@@ -138,9 +137,7 @@ function loop() {
 
         for (let k in verts) {
             pDivide(verts[k]);
-            //verts[k] = mat4x4VecMult(screenMatrix(canvas.width, canvas.height), verts[k]);
-            verts[k].x = verts[k].x * canvas.width / 2 + canvas.width / 2;
-            verts[k].y = verts[k].y * -canvas.height / 2 + canvas.height / 2;
+            verts[k] = mat4x4VecMult(screenMatrix(canvas.width, canvas.height), verts[k]);
         }
 
         if (verts.length == 3) buffer.fillTriangle(verts[0], verts[1], verts[2], colors[i % 6]);
@@ -150,7 +147,7 @@ function loop() {
         }
     }
 
-    buffer.draw(c);
+    buffer.draw();
 }
 
 window.onmousemove = e => {

@@ -1,5 +1,97 @@
 import { Vector3, subVec3, cross, dot, normalize } from "./vector.js";
 
+export const Matrix = {
+    MatVecMult: function(mat, vec) {
+        let x = mat[0][0] * vec.x + mat[1][0] * vec.y + mat[2][0] * vec.z + mat[3][0];
+        let y = mat[0][1] * vec.x + mat[1][1] * vec.y + mat[2][1] * vec.z + mat[3][1];
+        let z = mat[0][2] * vec.x + mat[1][2] * vec.y + mat[2][2] * vec.z + mat[3][2];
+        let w = mat[0][3] * vec.x + mat[1][3] * vec.y + mat[2][3] * vec.z + mat[3][3];
+        
+        return new Vector3(x, y, z, w);
+    },
+
+    MatMult: function(m1, m2) {
+        let matrix = Array.from({ length: 4 }, () => Array.from({ length: 4 }, () => 0));
+
+        for (let c = 0; c < 4; c++) {
+            for (let r = 0; r < 4; r++) {
+                matrix[r][c] = m1[r][0] * m2[0][c] + m1[r][1] * m2[1][c] + m1[r][2] * m2[2][c] + m1[r][3] * m2[3][c];
+            }
+        }
+        return matrix;
+    },
+
+    scale: function(scale) {
+        let sx = scale.x;
+        let sy = scale.y;
+        let sz = scale.z;
+
+        return [
+            [ sx,  0,  0,  0  ],
+            [  0, sy,  0,  0  ],
+            [  0,  0, sz,  0  ],
+            [  0,  0,  0,  1  ]
+        ];
+    },
+
+    translate: function(v) {
+        let tx = v.x;
+        let ty = v.y;
+        let tz = v.z;
+        return [
+            [  1,  0,  0,  0  ],
+            [  0,  1,  0,  0  ],
+            [  0,  0,  1,  0  ],
+            [ vx, vy, vz,  1  ]
+        ];
+    },
+
+    rotX: function(a) {
+        let s = Math.sin(a);
+        let c = Math.cos(a);
+
+        return [
+            [  1,  0,  0,  0  ],
+            [  0,  c,  s,  0  ],
+            [  0, -s,  c,  0  ],
+            [  0,  0,  0,  1  ],
+        ];
+    },
+    rotY: function(a) {
+        let s = Math.sin(a);
+        let c = Math.cos(a);
+
+        return [
+            [  c,  0, -s,  0  ],
+            [  0,  1,  0,  0  ],
+            [  s,  0,  c,  0  ],
+            [  0,  0,  0,  1  ],
+        ];
+    },
+    rotZ: function(a) {
+        let s = Math.sin(a);
+        let c = Math.cos(a);
+    
+        return [
+            [  c,  s,  0,  0  ],
+            [ -s,  c,  0,  0  ],
+            [  0,  0,  1,  0  ],
+            [  0,  0,  0,  1  ],
+        ];
+    },
+
+    rotation: function(x, y, z) {
+        return this.MatMult(this.MatMult(rotation_y(x), rotation_x(y)), rotation_z(z));
+    },
+
+    worldMatrix: function(mesh) {
+        let scale = this.scale(mesh.scale);
+        let translation = translationMatrix(mesh.pos.x, mesh.pos.y, mesh.pos.z);
+        let rotation = rotationMatrix(mesh.rot.x, mesh.rot.y, mesh.rot.z);
+    
+        return mat4x4Mult(mat4x4Mult(scale, rotation), translation);
+    },
+}
 
 export function mat4x4VecMult(mat, vec) {
 
