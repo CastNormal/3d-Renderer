@@ -10,7 +10,7 @@ export class Buffer {
     #buffer;
     #zbuffer;
     #context;
-
+    #texture;
     #width;
     #height;
 
@@ -21,6 +21,20 @@ export class Buffer {
         this.#context = context;
         this.#buffer = context.createImageData(width, height);
         this.#zbuffer = new Array(width * height);
+
+        const B = new Color(0, 0, 255);
+        const R = new Color(255, 0, 0);
+
+        this.#texture = [
+            [ B, R, B, R, B, R, B, R ],
+            [ R, B, R, B, R, B, R, B ],
+            [ B, R, B, R, B, R, B, R ],
+            [ R, B, R, B, R, B, R, B ],
+            [ B, R, B, R, B, R, B, R ],
+            [ R, B, R, B, R, B, R, B ],
+            [ B, R, B, R, B, R, B, R ],
+            [ R, B, R, B, R, B, R, B ]
+        ];
     }
 
     setPixel(x, y, z, color) {
@@ -79,25 +93,48 @@ export class Buffer {
         }
     }*/
 
-    #drawHorLine(x0, x1, z0, z1, y, color) {
+    #drawHorLine(x0, x1, z0, z1, y, u0, u1, v0, v1) {
+        
         if (x0 > x1) {
             [x0, x1] = [x1, x0];
             [z0, z1] = [z1, z0];
+            [u0, u1] = [u1, u0];
+            [v0, v1] = [v1, v0];
         }
 
         let length = x1 - x0;
 
         if (x0 == x1) {
-            this.setPixel(x0, y, z0, color);
+            this.setPixel(x0, y, z0, new Color(0, 0, 0));
             return;
         }
 
+        let x_step = 1 / Math.abs(length);
+        let xt = 0;
+
+        if (!(z0 <= 1 && z0 >= 0 && z1 <= 1 && z1 >= 0)) return;
+
         for (let x = x0; x <= x1; x++) {
-            this.setPixel(x, y, lerp(z0, z1, (x - x0) / length), color);
+
+            let z = lerp(z0, z1, xt);
+            let lx = lerp(u0, u1, xt);
+            let ly = lerp(v0, v1, xt);
+            
+            let tex_x = (lx < 1) ? Math.floor(lx * 8 / z) : Math.floor(7 / z);
+            let tex_y = (ly < 1) ? Math.floor(ly * 8 / z) : Math.floor(7 / z);
+
+            try {
+                let color = this.#texture[tex_y][tex_x];
+                this.setPixel(x, y, 1/z, color);
+            } catch {
+                //this.setPixel(x, y, z, new Color(0, 0, 0));
+            }
+
+            xt += x_step;
         }
     }
 
-    #bottomFlatTriangle(p1, p2, p3, color) {
+    #bottomFlatTriangle(p1, p2, p3, uv1, uv2, uv3) {
         
         let invslope1 = (p2.x - p1.x) / (p2.y - p1.y);
         let invslope2 = (p3.x - p1.x) / (p3.y - p1.y);
@@ -111,17 +148,28 @@ export class Buffer {
         let curz1 = p1.z;
         let curz2 = p1.z;
 
+        let t_step = 1 / Math.abs(p2.y - p1.y);
+        let t = 0;
+
         for (let scanlineY = p1.y; scanlineY <= p2.y; scanlineY++) {
-            this.#drawHorLine(Math.round(curx1), Math.round(curx2), curz1, curz2, parseInt(scanlineY), color);
+
+            let u1 = lerp(uv1.x, uv2.x, t);
+            let u2 = lerp(uv1.x, uv3.x, t);
+            let v1 = lerp(uv1.y, uv2.y, t);
+            let v2 = lerp(uv1.y, uv3.y, t);
+
+            this.#drawHorLine(Math.round(curx1), Math.round(curx2), curz1, curz2, parseInt(scanlineY), u1, u2, v1, v2);
 
             curx1 += invslope1;
             curx2 += invslope2;
             curz1 += z_invslope1;
             curz2 += z_invslope2;
+
+            t += t_step;
         }
     }
 
-    #topFlatTriangle(p1, p2, p3, color) {
+    #topFlatTriangle(p1, p2, p3, uv1, uv2, uv3) {
         let invslope1 = (p3.x - p1.x) / (p3.y - p1.y);
         let invslope2 = (p3.x - p2.x) / (p3.y - p2.y);
 
@@ -133,31 +181,71 @@ export class Buffer {
         let curz1 = p3.z;
         let curz2 = p3.z;
 
+        let t_step = 1 / Math.abs(p3.y - p1.y);
+        let t = 0;
+
         for (let scanlineY = p3.y; scanlineY > p1.y; scanlineY--) {
-            this.#drawHorLine(Math.round(curx1), Math.round(curx2), curz1, curz2, parseInt(scanlineY), color);
+
+            let u1 = lerp(uv3.x, uv1.x, t);
+            let u2 = lerp(uv3.x, uv2.x, t);
+            let v1 = lerp(uv3.y, uv1.y, t);
+            let v2 = lerp(uv3.y, uv2.y, t);
+
+            this.#drawHorLine(Math.round(curx1), Math.round(curx2), curz1, curz2, parseInt(scanlineY), u1, u2, v1, v2);
 
             curx1 -= invslope1;
             curx2 -= invslope2;
             curz1 -= z_invslope1;
             curz2 -= z_invslope2;
+
+            t += t_step;
         }
     }
 
-    fillTriangle(v1, v2, v3, color) {
-        let p1 = new Vector3(Math.round(v1.x), Math.round(v1.y), v1.z);
-        let p2 = new Vector3(Math.round(v2.x), Math.round(v2.y), v2.z);
-        let p3 = new Vector3(Math.round(v3.x), Math.round(v3.y), v3.z);
+    fillTriangle(v1, v2, v3, uv1, uv2, uv3) {
+        let p1 = new Vector3(Math.round(v1.x), Math.round(v1.y), v1.w);
+        let p2 = new Vector3(Math.round(v2.x), Math.round(v2.y), v2.w);
+        let p3 = new Vector3(Math.round(v3.x), Math.round(v3.y), v3.w);
+
+        let te1 = new Vector2(uv1.x, uv1.y);
+        let te2 = new Vector2(uv2.x, uv2.y);
+        let te3 = new Vector2(uv3.x, uv3.y);
+
+
+        te1.x = te1.x / p1.z;
+        te2.x = te2.x / p2.z;
+        te3.x = te3.x / p3.z;
+        
+        te1.y = te1.y / p1.z;
+        te2.y = te2.y / p2.z;
+        te3.y = te3.y / p3.z;
+
+        p1.z = 1 / p1.z;
+        p2.z = 1 / p2.z;
+        p3.z = 1 / p3.z;
 
         if (p1.y == p2.y && p2.y == p3.y) return;
 
-        if (p2.y < p1.y) [p2, p1] = [p1, p2];
-        if (p3.y < p2.y) [p3, p2] = [p2, p3];
-        if (p2.y < p1.y) [p2, p1] = [p1, p2];
+        if (p2.y < p1.y) {
+            [p2, p1] = [p1, p2];
+            [te2, te1] = [te1, te2];
+        }
+
+        if (p3.y < p2.y) {
+            [p3, p2] = [p2, p3];
+            [te3, te2] = [te2, te3];
+        }
+
+        if (p2.y < p1.y) {
+            [p2, p1] = [p1, p2];
+            [te2, te1] = [te1, te2];
+        }
+
 
         if (p1.y == p2.y) {
-            this.#topFlatTriangle(p1, p2, p3, color);
+            this.#topFlatTriangle(p1, p2, p3, te1, te2, te3);
         } else if (p2.y == p3.y) {
-            this.#bottomFlatTriangle(p1, p2, p3, color);
+            this.#bottomFlatTriangle(p1, p2, p3, te1, te2, te3);
         } else {
 
             let p4 = new Vector3;
@@ -165,15 +253,18 @@ export class Buffer {
             p4.y = p2.y;
             p4.z = (p1.z == p3.z) ? p1.z : lerp(p1.z, p3.z, (p1.y - p4.y) / (p1.y - p3.y));
 
-            //console.log(p1.z, p2.z, p4.z);
-            this.#bottomFlatTriangle(p1, p2, p4, color);
-            this.#topFlatTriangle(p2, p4, p3, color);
+            let te4 = new Vector2;
+            te4.x = lerp(te1.x, te3.x, (p1.y - p4.y) / (p1.y - p3.y));
+            te4.y = lerp(te1.y, te3.y, (p1.y - p4.y) / (p1.y - p3.y));
+
+            this.#bottomFlatTriangle(p1, p2, p4, te1, te2, te4);
+            this.#topFlatTriangle(p2, p4, p3, te2, te4, te3);
         }
     }
 
     clearDepthBuffer() {
         for (let i = 0; i < this.#zbuffer.length; i++) {
-            this.#zbuffer[i] = 1;
+            this.#zbuffer[i] = 1000;
         }
     }
 

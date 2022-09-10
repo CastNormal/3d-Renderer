@@ -1,6 +1,11 @@
 import { dot, lerpVec3, normalize, Vector2, Vector3 } from "./Math/vector.js";
 
 function lerp(a, b, t) {
+
+    if (a == b) return a;
+    if (t < 0) t = 0;
+    if (t > 1) t = 1;
+
     return a * (1 - t) + b * t;
 }
 
@@ -51,14 +56,12 @@ function twoVertClip(v1, v2, v3, d1, d2, d3) { //v1 and v2 are the verts that pa
     return [ v2, v3, lerpVec3(v1, v3, t3), lerpVec3(v1, v2, t2) ];
 }
 
-export function nearTriClip(v1, v2, v3, vertices) {
+export function planeTriClip(v1, v2, v3, vertices, plane) {
+    const plane_n = normalize(plane);
 
-    const near = new Vector3(0, 0, 0.1);
-    const near_n = normalize(near);
-
-    let d1 = dot(v1, near_n) - dot(near_n, near);
-    let d2 = dot(v2, near_n) - dot(near_n, near);
-    let d3 = dot(v3, near_n) - dot(near_n, near);
+    let d1 = dot(v1, plane_n) - dot(plane_n, plane);
+    let d2 = dot(v2, plane_n) - dot(plane_n, plane);
+    let d3 = dot(v3, plane_n) - dot(plane_n, plane);
 
     if (d1 > 0 && d2 > 0 && d3 > 0) { //All pass
         vertices.push(v1, v2, v3);
