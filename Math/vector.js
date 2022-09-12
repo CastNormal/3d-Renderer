@@ -53,7 +53,7 @@ export function addVec2(v1, v) {
 }
 
 export class Vector3 {
-    constructor(x, y, z, w = 1) {
+    constructor(x, y, z, w = 1, u = 0, v = 0) {
         this.x = x;
         this.y = y;
         this.z = z;

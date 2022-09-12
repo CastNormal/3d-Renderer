@@ -39,27 +39,20 @@ export class Cube extends Mesh {
             new Vector3( 1,  1, -1),
             new Vector3( 1, -1, -1)
         ];
-
-        this.uv_coords = [
-            new Vector2(0, 0),
-            new Vector2(0, 1),
-            new Vector2(1, 1),
-            new Vector2(1, 0),
-        ];
     
         this.faces = [
-            new Tri(4, 2, 0, 0, 1, 2),
-            new Tri(2, 7, 3, 0, 1, 2),
-            new Tri(6, 5, 7, 0, 1, 2),
-            new Tri(1, 7, 5, 0, 1, 2),
-            new Tri(0, 3, 1, 0, 1, 2),
-            new Tri(4, 1, 5, 0, 1, 2),
-            new Tri(4, 6, 2, 0, 1, 2),
-            new Tri(2, 6, 7, 0, 1, 2),
-            new Tri(6, 4, 5, 0, 1, 2),
-            new Tri(1, 3, 7, 0, 1, 2),
-            new Tri(0, 2, 3, 0, 1, 2),
-            new Tri(4, 0, 1, 0, 1, 2)
+            new Tri(4, 2, 0, new Vector2(0, 0), new Vector2(1, 1), new Vector2(0, 1)),
+            new Tri(2, 7, 3, new Vector2(0, 0), new Vector2(1, 1), new Vector2(0, 1)),
+            new Tri(6, 5, 7, new Vector2(0, 0), new Vector2(1, 1), new Vector2(0, 1)),
+            new Tri(1, 7, 5, new Vector2(0, 0), new Vector2(1, 1), new Vector2(0, 1)),
+            new Tri(0, 3, 1, new Vector2(0, 0), new Vector2(1, 1), new Vector2(0, 1)),
+            new Tri(4, 1, 5, new Vector2(0, 0), new Vector2(1, 1), new Vector2(0, 1)),
+            new Tri(4, 6, 2, new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1)),
+            new Tri(2, 6, 7, new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1)),
+            new Tri(6, 4, 5, new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1)),
+            new Tri(1, 3, 7, new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1)),
+            new Tri(0, 2, 3, new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1)),
+            new Tri(4, 0, 1, new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1))
         ];
     }
 }

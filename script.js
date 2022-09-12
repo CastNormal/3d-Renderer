@@ -89,7 +89,7 @@ let xRot = 0, zRot = 0;
 
 const near = 0.001;
 const far = 100000;
-const fov = 90;
+const fov = 60;
 const aspect_ratio = canvas.height / canvas.width;
 
 function rng() {
@@ -122,12 +122,18 @@ function loop() {
         let v = [
             mat4x4VecMult(fMatrix, cube.vertices[cube.faces[i].v1]),
             mat4x4VecMult(fMatrix, cube.vertices[cube.faces[i].v2]),
-            mat4x4VecMult(fMatrix, cube.vertices[cube.faces[i].v3]),
+            mat4x4VecMult(fMatrix, cube.vertices[cube.faces[i].v3])
+        ];
+
+        let uv = [
+            cube.faces[i].uv1,
+            cube.faces[i].uv2,
+            cube.faces[i].uv3
         ];
 
         let verts = [];
 
-        if (!planeTriClip(v[0], v[1], v[2], verts, new Vector3(0, 0, 1))) return;
+        if (!planeTriClip(v[0], v[1], v[2], verts, new Vector3(0, 0, 0.001))) return;
 
         for (let k in verts) {
             pDivide(verts[k]);
@@ -148,8 +154,8 @@ function loop() {
         if (dot(normal, subVec3(nv1, camera.pos)) > 0) continue;
 
         if (verts.length == 3) {
-            if ((i % 2) == 0) buffer.fillTriangle(verts[0], verts[1], verts[2], uv2, uv3, uv1);
-            else buffer.fillTriangle(verts[0], verts[1], verts[2], uv3, uv1, uv2);
+            if ((i % 2) == 0) buffer.fillTriangle(verts[0], verts[1], verts[2], uv[0], uv[1], uv[2]);
+            else buffer.fillTriangle(verts[0], verts[1], verts[2], uv[0], uv[1], uv[2]);
         }
         else {
             //buffer.fillTriangle(verts[0], verts[1], verts[2], uv1, uv2, uv3);

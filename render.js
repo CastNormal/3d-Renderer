@@ -6,6 +6,13 @@ function lerp(a, b, t) {
     return a * (1 - t) + b * t;
 }
 
+function clamp(a, min, max) {
+
+    if (a < min) return min;
+    else if (a > max) return max;
+    else return a;
+}
+
 export class Buffer {
     #buffer;
     #zbuffer;
@@ -24,16 +31,17 @@ export class Buffer {
 
         const B = new Color(0, 0, 255);
         const R = new Color(255, 0, 0);
+        const Y = new Color(255, 255, 0);
 
         this.#texture = [
-            [ B, R, B, R, B, R, B, R ],
-            [ R, B, R, B, R, B, R, B ],
-            [ B, R, B, R, B, R, B, R ],
-            [ R, B, R, B, R, B, R, B ],
-            [ B, R, B, R, B, R, B, R ],
-            [ R, B, R, B, R, B, R, B ],
-            [ B, R, B, R, B, R, B, R ],
-            [ R, B, R, B, R, B, R, B ]
+            [ Y, R, Y, R, B, R, B, R ],
+            [ R, Y, R, Y, R, B, R, B ],
+            [ Y, R, Y, R, B, R, B, R ],
+            [ R, Y, R, Y, R, B, R, B ],
+            [ Y, R, Y, R, B, R, B, R ],
+            [ R, Y, R, Y, R, B, R, B ],
+            [ Y, R, Y, R, B, R, B, R ],
+            [ R, Y, R, Y, R, B, R, B ]
         ];
     }
 
@@ -105,7 +113,14 @@ export class Buffer {
         let length = x1 - x0;
 
         if (x0 == x1) {
-            this.setPixel(x0, y, z0, new Color(0, 0, 0));
+            
+            let tex_x = Math.floor(u0 * 8 / z0);
+            let tex_y = Math.floor(v0 * 8 / z0);
+
+            tex_x = clamp(tex_x, 0, 7);
+            tex_y = clamp(tex_y, 0, 7);
+
+            this.setPixel(x0, y, 1/z0, this.#texture[tex_y][tex_x]);
             return;
         }
 
@@ -120,15 +135,14 @@ export class Buffer {
             let lx = lerp(u0, u1, xt);
             let ly = lerp(v0, v1, xt);
             
-            let tex_x = (lx < 1) ? Math.floor(lx * 8 / z) : Math.floor(7 / z);
-            let tex_y = (ly < 1) ? Math.floor(ly * 8 / z) : Math.floor(7 / z);
+            let tex_x = Math.floor(lx * 8 / z);
+            let tex_y = Math.floor(ly * 8 / z);
 
-            try {
-                let color = this.#texture[tex_y][tex_x];
-                this.setPixel(x, y, 1/z, color);
-            } catch {
-                //this.setPixel(x, y, z, new Color(0, 0, 0));
-            }
+            tex_x = clamp(tex_x, 0, 7);
+            tex_y = clamp(tex_y, 0, 7);
+
+            let color = this.#texture[tex_y][tex_x];
+            this.setPixel(x, y, 1/z, color);
 
             xt += x_step;
         }
@@ -264,7 +278,7 @@ export class Buffer {
 
     clearDepthBuffer() {
         for (let i = 0; i < this.#zbuffer.length; i++) {
-            this.#zbuffer[i] = 1000;
+            this.#zbuffer[i] = Infinity;
         }
     }
 
