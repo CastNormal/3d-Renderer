@@ -1,6 +1,8 @@
-import { Vector2, Vector3 } from "./Math/vector.js";
-import { Cube, Mesh, Tri } from "./Objects/mesh.js";
-import { Color } from "./Util/color.js";
+import { Vector2, Vector3 } from "./Math/vector.js"
+import { Cube, Mesh, Tri } from "./Objects/mesh.js"
+import { Color } from "./Util/color.js"
+import { Matrix } from "./Math/matrix.js"
+import { planeTriClip } from "./clipping.js";
 
 function lerp(a, b, t) {
     return a * (1 - t) + b * t;
@@ -285,5 +287,61 @@ export class Buffer {
     clear(width, height) {
         this.#context.clearRect(0, 0, width, height);
         this.#buffer = this.#context.getImageData(0, 0, width, height);
+    }
+}
+
+export function fillMesh(buffer, mesh, camera, projection_matrix, xRot, zRot) {
+    let world_matrix = Matrix.worldMatrix(mesh);
+    let view_matrix = Matrix.FPSview(camera.pos, zRot, xRot);
+    let fMatrix = Matrix.MatMult(Matrix.MatMult(world_matrix, view_matrix), projection_matrix);
+
+    for (let i in mesh.faces) {
+
+        let v = [
+            Matrix.MatVecMult(fMatrix, mesh.vertices[mesh.faces[i].v1]),
+            Matrix.MatVecMult(fMatrix, mesh.vertices[mesh.faces[i].v2]),
+            Matrix.MatVecMult(fMatrix, mesh.vertices[mesh.faces[i].v3])
+        ];
+
+        let uv = [
+            mesh.faces[i].uv1,
+            mesh.faces[i].uv2,
+            mesh.faces[i].uv3
+        ];
+
+        let verts = [];
+
+        if (!planeTriClip(v[0], v[1], v[2], verts, new Vector3(0, 0, 1))) return;
+
+        for (let k in verts) {
+            //pDivide(verts[k]);
+            //verts[k] = mat4x4VecMult(screenMatrix(canvas.width, canvas.height), verts[k]);
+            verts[k].x /= verts[k].w;
+            verts[k].y /= verts[k].w;
+            verts[k].z /= verts[k].w;
+
+            verts[k].x = verts[k].x * canvas.width/2 + canvas.width/2;
+            verts[k].y = verts[k].y * -canvas.height/2 + canvas.height/2;
+        }
+
+        let nv1 = Matrix.MatVecMult(world_matrix, mesh.vertices[mesh.faces[i].v1]);
+        let nv2 = Matrix.MatVecMult(world_matrix, mesh.vertices[mesh.faces[i].v2]);
+        let nv3 = Matrix.MatVecMult(world_matrix, mesh.vertices[mesh.faces[i].v3]);
+
+        let line1 = Vector3.sub(nv2, nv1);
+        let line2 = Vector3.sub(nv3, nv1);
+
+        let normal = Vector3.cross(line1, line2);
+
+        if (Vector3.dot(normal, Vector3.sub(nv1, camera.pos)) > 0) continue;
+
+        if (verts.length == 3) {
+            if ((i % 2) == 0) buffer.fillTriangle(verts[0], verts[1], verts[2], uv[0], uv[1], uv[2]);
+            else buffer.fillTriangle(verts[0], verts[1], verts[2], uv[0], uv[1], uv[2]);
+        }
+        else {
+            buffer.fillTriangle(verts[0], verts[1], verts[2], uv[0], uv[1], uv[2]);
+            buffer.fillTriangle(verts[2], verts[3], verts[0], uv[0], uv[1], uv[2]);
+        }
     }
 }

@@ -1,152 +1,215 @@
-function lerp(a, b, t) {
-    return a * (1 - t) + b * t;
+function toVector2(v) {
+    if (v instanceof Vector2) return v;
+    else if (Array.isArray(v)) {
+        if (v.length == 2) return new Vector2(v[0], v[1]);
+        else if (v.length == 3) return new Vector2(v[0], v[1], v[2]);
+        else return 0;
+    } else return 0;
+}
+
+function operatorVector2(v1, v2, i) {
+
+  let _v1 = toVector2(v1);
+  let _v2 = toVector2(v2);
+
+  if (!_v1 || !_v2 && typeof v2 !== "number") throw new Error("Invalid argument");
+  else if (_v1 && typeof v2 === "number") {
+    switch(i) {
+      case 0:
+        return new Vector2(_v1.x + v2, _v1.y + v2);
+        break;
+      case 1:
+        return new Vector2(_v1.x - v2, _v1.y - v2);
+        break;
+      case 2:
+        return new Vector2(_v1.x * v2, _v1.y * v2);
+        break;
+      case 3:
+        return new Vector2(_v1.x / v2, _v1.y / v2);
+    }
+  } else {
+    switch(i) {
+      case 0:
+        return new Vector2(_v1.x + _v2.x, _v1.y + _v2.y);
+        break;
+      case 1:
+        return new Vector2(_v1.x - _v2.x, _v1.y - _v2.y);
+        break;
+      case 2:
+        return new Vector2(_v1.x * _v2.x, _v1.y * _v2.y);
+        break;
+      case 3:
+        return new Vector2(_v1.x / _v2.x, _v1.y + _v2.y);
+    }
+  }
 }
 
 export class Vector2 {
-    constructor(x, y) {
+    constructor(x, y, w = 1) {
+        if ((isNaN(x) || isNaN(y) || isNaN(w)) && x !== undefined) throw new Error("Invalid argument");
         this.x = x;
         this.y = y;
+        this.w = w;
+    }
+    
+    static add(v1, v2) { return operatorVector2(v1, v2, 0); }
+    static sub(v1, v2) { return operatorVector2(v1, v2, 1); }
+    static mult(v1, v2) { return operatorVector2(v1, v2, 2); }
+    static div(v1, v2) { return operatorVector2(v1, v2, 3); }
+
+    static dot = function(v1, v2) {
+        let _v1 = toVector2(v1);
+        let _v2 = toVector2(v2);
+
+        if (!_v1 || !_v2) throw new Error("Invalid argument");
+        return _v1.x * _v2.x + _v1.y * _v2.y;
     }
 
-    add(v) {
-        if (typeof v === Number) return new Vector2(this.x + v, this.y + v);
-        else if (typeof v === Vector2) return new Vector2(this.x + v.x, this.y + v.y);
-        else throw Error(NAN);
+    static normal = function(v) {
+        let _v = toVector2(v);
+        if (!_v) throw new Error("Invalid argument");
+
+        let length = Math.sqrt(_v.x * _v.x + _v.y * _v.y);
+        return new Vector2(_v.x / length, _v.y / length);
     }
 
-    sub(v) {
-        if (typeof v === Number) return new Vector2(this.x - v, this.y - v);
-        else if (typeof v === Vector2) return new Vector2(this.x - v.x, this.y - v.y);
-        else throw Error(NAN);
+    static lerp = function(v1, v2, t) {
+        let _v1 = toVector2(v1);
+        let _v2 = toVector2(v2);
+
+        if (!_v1 || !_v2 || typeof t !== "number") throw new Error("Invalid argument");
+        return new Vector2(
+            (1 - t) * _v1.x + t * _v2.x,
+            (1 - t) * _v1.y + t * _v2.y,
+            (1 - t) * _v1.w + t * _v2.w
+        );
     }
 
-    mult(v) {
-        if (typeof v === Number) return new Vector2(this.x * v, this.y * v);
-        else if (typeof v === Vector2) return new Vector2(this.x * v.x, this.y * v.y);
-        else throw Error(NAN);
-    }
-
-    div(v) {
-        if (typeof v === Number) return new Vector2(this.x / v, this.y / v);
-        else if (typeof v === Vector2) return new Vector2(this.x / v.x, this.y / v.y);
-        else throw Error(NAN);
-    }
-
-    lerp(v, t) {
-        if (typeof v !== Vector2) throw Error('expected type ' + Vector2 + ', got ' + typeof v);
-        if (typeof t !== Number) throw Error('expected type ' + Number + ', got ' + typeof t);
-        return new Vector2(lerp(this.x, v.x, t), lerp(this.y, v.y, t));
-    }
-
-    dot(v) {
-        if (typeof v !== Vector2) throw Error('expected type ' + Vector2 + ', got ' + typeof v);
-        return this.x * v.x + this.y * v.y;
+    static normalize = function(v) {
+        let _v = toVector2(v);
+        
+        if (!_v) throw new Error("Invalid Argument");
+        
+        return new Vector2(
+            _v.x / _v.w,
+            _v.y / _v.w,
+            1
+        );
     }
 }
 
-export function subVec2(v1, v) {
-    return new Vector3(v1.x - v.x, v1.y - v.y);
+function toVector3(v) {
+    if (v instanceof Vector3) return v;
+    else if (Array.isArray(v)) {
+        if (v.length == 3) return new Vector3(v[0], v[1], v[2]);
+        else if (v.length == 4) return new Vector3(v[0], v[1], v[2], v[3]);
+        else return 0;
+    } else return 0;
 }
 
-export function addVec2(v1, v) {
-    return new Vector3(v1.x + v.x, v1.y + v.y);
+function operatorVector3(v1, v2, i) {
+
+  let _v1 = toVector3(v1);
+  let _v2 = toVector3(v2);
+
+  if (!_v1 || !_v2 && typeof v2 !== "number") throw new Error("Invalid argument");
+  else if (_v1 && typeof v2 === "number") {
+    switch(i) {
+      case 0:
+        return new Vector3(_v1.x + v2, _v1.y + v2, _v1.z + v2);
+        break;
+      case 1:
+        return new Vector3(_v1.x - v2, _v1.y - v2, _v1.z - v2);
+        break;
+      case 2:
+        return new Vector3(_v1.x * v2, _v1.y * v2, _v1.z * v2);
+        break;
+      case 3:
+        return new Vector3(_v1.x / v2, _v1.y / v2, _v1.z / v2);
+    }
+  } else {
+    switch(i) {
+      case 0:
+        return new Vector3(_v1.x + _v2.x, _v1.y + _v2.y, _v1.z + _v2.z);
+        break;
+      case 1:
+        return new Vector3(_v1.x - _v2.x, _v1.y - _v2.y, _v1.z - _v2.z);
+        break;
+      case 2:
+        return new Vector3(_v1.x * _v2.x, _v1.y * _v2.y, _v1.z * _v2.z);
+        break;
+      case 3:
+        return new Vector3(_v1.x / _v2.x, _v1.y + _v2.y, _v1.z / _v2.z);
+    }
+  }
 }
 
 export class Vector3 {
-    constructor(x, y, z, w = 1, u = 0, v = 0) {
+    constructor(x, y, z, w = 1) {
+        if ((isNaN(x) || isNaN(y) || isNaN(z) || isNaN(w)) && x !== undefined) throw new Error("Invalid argument");
         this.x = x;
         this.y = y;
         this.z = z;
         this.w = w;
     }
-
-    add(v) {
-        if (typeof v === Number) return new Vector3(this.x + v, this.y + v, this.z + v);
-        else if (typeof v === Vector2) return new Vector3(this.x + v.x, this.y + v.y, this.z + v.z);
-        else throw Error(NAN);
-    }
-
-    sub(v) {
-        if (typeof v === Number) return new Vector3(this.x - v, this.y - v, this.z - v);
-        else if (typeof v === Vector3) return new Vector3(this.x - v.x, this.y - v.y, this.z - v.z);
-        else throw Error(NAN);
-    }
-
-    mult(v) {
-        if (typeof v === Number) return new Vector3(this.x * v, this.y * v, this.z * v);
-        else if (typeof v === Vector3) return new Vector3(this.x * v.x, this.y * v.y, this.z * v.z);
-        else throw Error(NAN);
-    }
-
-    div(v) {
-        if (typeof v === Number) return new Vector3(this.x / v, this.y / v, this.z / v);
-        else if (typeof v === Vector3) return new Vector3(this.x / v.x, this.y / v.y, this.z / v.z);
-        else throw Error(NAN);
-    }
-
-    lerp(v, t) {
-        if (typeof v !== Vector3) throw Error('expected type ' + Vector3 + ', got ' + typeof v);
-        if (typeof t !== Number) throw Error('expected type ' + Number + ', got ' + typeof t);
-        return new Vector3(lerp(this.x, v.x, t), lerp(this.y, v.y, t), lerp(this.z, v.z, t), lerp(this.w, v.w, t));
-    }
-
-    dot(v) {
-        if (typeof v !== Vector3) throw Error('expected type ' + Vector3 + ', got ' + typeof v);
-        return this.x * v.x + this.y * v.y + this.z * v.z;
-    }
-
-    cross(v) {
-        if (typeof v !== Vector3) throw Error('expected type ' + Vector3 + ', got ' + typeof v);
-        let vx = v1.y * v.z - v1.z * v.y;
-	    let vy = v1.z * v.x - v1.x * v.z;
-	    let vz = v1.x * v.y - v1.y * v.x;
-
-	    return new Vector3(vx, vy, vz);
-    }
-
-    normal() {
-        let l = Math.sqrt(this.dot(this));
-        if (l != 0) return new Vector3(v.x / l, v.y / l, v.z / l);
-        
-        return v;
-    }
-}
-
-
-export function subVec3(v1, v) {
-    return new Vector3(v1.x - v.x, v1.y - v.y, v1.z - v.z);
-}
-
-export function addVec3(v1, v) {
-    return new Vector3(v1.x + v.x, v1.y + v.y, v1.z + v.z);
-}
-
-export function lerpVec3(v1, v, t) {
-    return new Vector3(
-        lerp(v1.x, v.x, t),
-        lerp(v1.y, v.y, t),
-        lerp(v1.z, v.z, t),
-        lerp(v1.w, v.w, t),
-    );
-}
-
-
-
-export function cross(v1, v) {
-	let vx = v1.y * v.z - v1.z * v.y;
-	let vy = v1.z * v.x - v1.x * v.z;
-	let vz = v1.x * v.y - v1.y * v.x;
-
-	return new Vector3(vx, vy, vz);
-}
-
-export function dot(v1, v) {
-    return v1.x * v.x + v1.y * v.y + v1.z * v.z;
-}
-
-export function normalize(v) {
-    let l = Math.sqrt(dot(v, v));
-    if (l != 0) return new Vector3(v.x / l, v.y / l, v.z / l);
     
-    return v;
+    static add(v1, v2) { return operatorVector3(v1, v2, 0); }
+    static sub(v1, v2) { return operatorVector3(v1, v2, 1); }
+    static mult(v1, v2) { return operatorVector3(v1, v2, 2); }
+    static div(v1, v2) { return operatorVector3(v1, v2, 3); }
+
+    static dot = function(v1, v2) {
+        let _v1 = toVector3(v1);
+        let _v2 = toVector3(v2);
+
+        if (!_v1 || !_v2) throw new Error("Invalid argument");
+        return _v1.x * _v2.x + _v1.y * _v2.y + _v1.z * _v2.z;
+    }
+
+    static normal = function(v) {
+        let _v = toVector3(v);
+        if (!_v) throw new Error("Invalid argument");
+
+        let length = Math.sqrt(_v.x * _v.x + _v.y * _v.y + _v.z * _v.z);
+        return new Vector3(_v.x / length, _v.y / length, _v.z / length);
+    }
+
+    static cross = function(v1, v2) {
+        let _v1 = toVector3(v1);
+        let _v2 = toVector3(v2);
+
+        if (!_v1 || !_v2) throw new Error("Invalid argument");
+
+        return new Vector3(
+            _v1.y * _v2.z - _v1.z * _v2.y,
+            _v1.z * _v2.x - _v1.x * _v2.z,
+            _v1.x * _v2.y - _v1.y * _v2.x
+        );
+    }
+
+    static lerp = function(v1, v2, t) {
+        let _v1 = toVector3(v1);
+        let _v2 = toVector3(v2);
+
+        if (!_v1 || !_v2 || typeof t !== "number") throw new Error("Invalid argument");
+        return new Vector3(
+            (1 - t) * _v1.x + t * _v2.x,
+            (1 - t) * _v1.y + t * _v2.y,
+            (1 - t) * _v1.z + t * _v2.z,
+            (1 - t) * _v1.w + t * _v2.w
+        );
+    }
+
+    static normalize = function(v) {
+        let _v = toVector3(v);
+        
+        if (!_v) throw new Error("Invalid Argument");
+        
+        return new Vector3(
+            _v.x / _v.w,
+            _v.y / _v.w,
+            _v.z / _v.w,
+            1
+        );
+    }
 }

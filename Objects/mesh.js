@@ -4,7 +4,7 @@ export class Mesh {
     vertices = [ new Vector3(0, 0, 0) ];
     faces = [];
 
-    constructor(position = new Vector3(0, 0, 0), rotation = new Vector3(0, 0, 0), scale = 1) {
+    constructor(position = new Vector3(0, 0, 0), rotation = new Vector3(0, 0, 0), scale = new Vector3(1, 1, 1)) {
         this.pos = position;
         this.rot = rotation;
         this.scale = scale;

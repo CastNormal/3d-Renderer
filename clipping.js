@@ -1,4 +1,4 @@
-import { dot, lerpVec3, normalize, Vector2, Vector3 } from "./Math/vector.js";
+import { Vector2, Vector3 } from "./Math/vector.js";
 
 function lerp(a, b, t) {
 
@@ -12,10 +12,10 @@ function lerp(a, b, t) {
 export function nearLineClip(v1, v2, near) {
 
     let near_v = new Vector3(0, 0, near);
-    let near_n = normalize(near_v);
+    let near_n = Vector3.normal(near_v);
 
-        let d1 = dot(v1, near_n) - dot(near_n, near_v);
-        let d2 = dot(v2, near_n) - dot(near_n, near_v);
+        let d1 = Vector3.dot(v1, near_n) - Vector3.dot(near_n, near_v);
+        let d2 = Vector3.dot(v2, near_n) - Vector3.dot(near_n, near_v);
 
         if (d1 < 0 && d2 < 0) return false;
         if (d1 > 0 && d2 > 0) return true;
@@ -45,7 +45,7 @@ function oneVertClip(v1, v2, v3, d1, d2, d3) { //v1 is the vert that passes test
     let t2 = d2 / (d2 - d1);
     let t3 = d3 / (d3 - d1);
 
-    return [ v1, lerpVec3(v2, v1, t2), lerpVec3(v3, v1, t3) ];
+    return [ v1, Vector3.lerp(v2, v1, t2), Vector3.lerp(v3, v1, t3) ];
 }
 
 function twoVertClip(v1, v2, v3, d1, d2, d3) { //v1 and v2 are the verts that pass
@@ -53,15 +53,15 @@ function twoVertClip(v1, v2, v3, d1, d2, d3) { //v1 and v2 are the verts that pa
     let t2 = d1 / (d1 - d2);
     let t3 = d1 / (d1 - d3);
 
-    return [ v2, v3, lerpVec3(v1, v3, t3), lerpVec3(v1, v2, t2) ];
+    return [ v2, v3, Vector3.lerp(v1, v3, t3), Vector3.lerp(v1, v2, t2) ];
 }
 
 export function planeTriClip(v1, v2, v3, vertices, plane) {
-    const plane_n = normalize(plane);
+    const plane_n = Vector3.normal(plane);
 
-    let d1 = dot(v1, plane_n) - dot(plane_n, plane);
-    let d2 = dot(v2, plane_n) - dot(plane_n, plane);
-    let d3 = dot(v3, plane_n) - dot(plane_n, plane);
+    let d1 = Vector3.dot(v1, plane_n) - Vector3.dot(plane_n, plane);
+    let d2 = Vector3.dot(v2, plane_n) - Vector3.dot(plane_n, plane);
+    let d3 = Vector3.dot(v3, plane_n) - Vector3.dot(plane_n, plane);
 
     if (d1 > 0 && d2 > 0 && d3 > 0) { //All pass
         vertices.push(v1, v2, v3);
