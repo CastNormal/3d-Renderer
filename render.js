@@ -51,10 +51,11 @@ export class Buffer {
         let i = (y * this.#width + x) * 4;
 
         if (x < 0 || y < 0 || x >= this.#width || y >= this.#height) {
+            //throw new Error("out");
             return;
         }
 
-        if (z >= this.#zbuffer[y * this.#width + x]) return;
+        if (z > this.#zbuffer[y * this.#width + x]) return;
         //console.log(z, this.#zbuffer[y * this.#width + x]);
         
         this.#zbuffer[y * this.#width + x] = z;
@@ -296,6 +297,7 @@ export function fillMesh(buffer, mesh, camera, projection_matrix, xRot, zRot) {
     let fMatrix = Matrix.MatMult(Matrix.MatMult(world_matrix, view_matrix), projection_matrix);
 
     for (let i in mesh.faces) {
+        //if (!(i == 1 || i == 7)) continue;
 
         let v = [
             Matrix.MatVecMult(fMatrix, mesh.vertices[mesh.faces[i].v1]),
@@ -311,17 +313,17 @@ export function fillMesh(buffer, mesh, camera, projection_matrix, xRot, zRot) {
 
         let verts = [];
 
-        if (!planeTriClip(v[0], v[1], v[2], verts, new Vector3(0, 0, 1))) return;
+        if (!planeTriClip(v[0], v[1], v[2], uv[0], uv[1], uv[2], verts, new Vector3(0, 0, 0.1))) continue;
 
         for (let k in verts) {
             //pDivide(verts[k]);
             //verts[k] = mat4x4VecMult(screenMatrix(canvas.width, canvas.height), verts[k]);
-            verts[k].x /= verts[k].w;
-            verts[k].y /= verts[k].w;
-            verts[k].z /= verts[k].w;
+            verts[k][0].x /= verts[k][0].w;
+            verts[k][0].y /= verts[k][0].w;
+            verts[k][0].z /= verts[k][0].w;
 
-            verts[k].x = verts[k].x * canvas.width/2 + canvas.width/2;
-            verts[k].y = verts[k].y * -canvas.height/2 + canvas.height/2;
+            verts[k][0].x = verts[k][0].x * canvas.width/2 + canvas.width/2;
+            verts[k][0].y = verts[k][0].y * -canvas.height/2 + canvas.height/2;
         }
 
         let nv1 = Matrix.MatVecMult(world_matrix, mesh.vertices[mesh.faces[i].v1]);
@@ -336,12 +338,11 @@ export function fillMesh(buffer, mesh, camera, projection_matrix, xRot, zRot) {
         if (Vector3.dot(normal, Vector3.sub(nv1, camera.pos)) > 0) continue;
 
         if (verts.length == 3) {
-            if ((i % 2) == 0) buffer.fillTriangle(verts[0], verts[1], verts[2], uv[0], uv[1], uv[2]);
-            else buffer.fillTriangle(verts[0], verts[1], verts[2], uv[0], uv[1], uv[2]);
+            buffer.fillTriangle(verts[0][0], verts[1][0], verts[2][0], uv[0], uv[1], uv[2]);
         }
         else {
-            buffer.fillTriangle(verts[0], verts[1], verts[2], uv[0], uv[1], uv[2]);
-            buffer.fillTriangle(verts[2], verts[3], verts[0], uv[0], uv[1], uv[2]);
+            //buffer.fillTriangle(verts[0], verts[1][0], verts[2][0], verts[0][1], verts[1][1], verts[2][1]);
+            //buffer.fillTriangle(verts[2], verts[3][0], verts[0][0], verts[2][1], verts[3][1], verts[0][1]);
         }
     }
 }
