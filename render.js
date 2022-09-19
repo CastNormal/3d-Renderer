@@ -313,7 +313,7 @@ export function fillMesh(buffer, mesh, camera, projection_matrix, xRot, zRot) {
 
         let verts = [];
 
-        if (!planeTriClip(v[0], v[1], v[2], uv[0], uv[1], uv[2], verts, new Vector3(0, 0, 0.1))) continue;
+        if (!planeTriClip(v[0], v[1], v[2], uv[0], uv[1], uv[2], verts, new Vector3(0, 0, 1), new Vector3(0, 0, 1))) continue;
 
         for (let k in verts) {
             //pDivide(verts[k]);
@@ -338,11 +338,11 @@ export function fillMesh(buffer, mesh, camera, projection_matrix, xRot, zRot) {
         if (Vector3.dot(normal, Vector3.sub(nv1, camera.pos)) > 0) continue;
 
         if (verts.length == 3) {
-            buffer.fillTriangle(verts[0][0], verts[1][0], verts[2][0], uv[0], uv[1], uv[2]);
+            buffer.fillTriangle(verts[0][0], verts[1][0], verts[2][0], verts[0][1], verts[1][1], verts[2][1]);
         }
         else {
-            //buffer.fillTriangle(verts[0], verts[1][0], verts[2][0], verts[0][1], verts[1][1], verts[2][1]);
-            //buffer.fillTriangle(verts[2], verts[3][0], verts[0][0], verts[2][1], verts[3][1], verts[0][1]);
+            buffer.fillTriangle(verts[0][0], verts[1][0], verts[2][0], verts[0][1], verts[1][1], verts[2][1]);
+            buffer.fillTriangle(verts[2][0], verts[3][0], verts[0][0], verts[2][1], verts[3][1], verts[0][1]);
         }
     }
 }

@@ -57,10 +57,7 @@ function twoVertClip(v1, v2, v3, uv1, uv2, uv3, d1, d2, d3) { //v1 and v2 are th
     return [[v2, uv2], [v3, uv3], [Vector3.lerp(v1, v3, t3), Vector2.lerp(uv1, uv3, t3)], [Vector3.lerp(v1, v2, t2), Vector2.lerp(uv1, uv2, t2)]];
 }
 
-export function planeTriClip(v1, v2, v3, uv1, uv2, uv3, vertices, pl) {
-
-    const plane = new Vector3(0, 0, 1);
-    const plane_n = new Vector3(0, 0, 1);
+export function planeTriClip(v1, v2, v3, uv1, uv2, uv3, vertices, plane, plane_n) {
     const plane_d = -Vector3.dot(plane_n, plane);
 
     let d1 = Vector3.dot(v1, plane_n) + plane_d;
