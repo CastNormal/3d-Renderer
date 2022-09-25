@@ -45,15 +45,16 @@ function moveCamera(event) {
             down = state;
             break;
         case '1':
-            xRot -= 0.05;
+            camera.rot.x -= 0.05;
             break;
         case '2':
-            xRot += 0.05;
+            camera.rot.x += 0.05;
+            break;
         case '3':
-            zRot -= 0.05;
+            camera.rot.z -= 0.05;
             break;
         case '4':
-            zRot += 0.05;
+            camera.rot.z += 0.05;
     }
 }
 
@@ -98,8 +99,6 @@ let cube2 = new Cube(new Vector3(4, 0, 5), new Vector3(0, 0, 0), new Vector3(1, 
 let cube3 = new Cube(new Vector3(6, 0, 5), new Vector3(0, 0, 0), new Vector3(1, 1, 1));
 //let cube = new Obj("monke.obj", new Vector3(0, 0, 5), new Vector3(0, 0, 0), 1);
 
-let xRot = 0, zRot = 0;
-
 const near = 0.001;
 const far = 100000;
 const fov = 60;
@@ -117,10 +116,10 @@ function loop() {
     buffer.clear(canvas.width, canvas.height);
     buffer.clearDepthBuffer();
 
-    fillMesh(buffer, cube0, camera, projection_matrix, xRot, zRot);
-    //fillMesh(buffer, cube1, camera, projection_matrix, xRot, zRot);
-    //fillMesh(buffer, cube2, camera, projection_matrix, xRot, zRot);
-    //fillMesh(buffer, cube3, camera, projection_matrix, xRot, zRot);
+    fillMesh(buffer, cube0, camera, projection_matrix);
+    fillMesh(buffer, cube1, camera, projection_matrix);
+    fillMesh(buffer, cube2, camera, projection_matrix);
+    fillMesh(buffer, cube3, camera, projection_matrix);
 
     buffer.draw();
 }

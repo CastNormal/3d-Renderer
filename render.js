@@ -291,9 +291,9 @@ export class Buffer {
     }
 }
 
-export function fillMesh(buffer, mesh, camera, projection_matrix, xRot, zRot) {
+export function fillMesh(buffer, mesh, camera, projection_matrix) {
     let world_matrix = Matrix.worldMatrix(mesh);
-    let view_matrix = Matrix.FPSview(camera.pos, zRot, xRot);
+    let view_matrix = Matrix.FPSview(camera.pos, camera.rot.z, camera.rot.x);
     let fMatrix = Matrix.MatMult(Matrix.MatMult(world_matrix, view_matrix), projection_matrix);
 
     for (let i in mesh.faces) {
@@ -345,11 +345,8 @@ export function fillMesh(buffer, mesh, camera, projection_matrix, xRot, zRot) {
             verts2.push(tri);
         }
 
-        if (verts2.length == 1) {
-            buffer.fillTriangle(verts2[0][0], verts2[0][1], verts2[0][2], text[0][0], text[0][1], text[0][2]);
-        } else if (verts2.length == 2) {
-            buffer.fillTriangle(verts2[0][0], verts2[0][1], verts2[0][2], text[0][0], text[0][1], text[0][2]);
-            buffer.fillTriangle(verts2[1][0], verts2[1][1], verts2[1][2], text[1][0], text[1][1], text[1][2]);
+        for (let t in verts2) {
+            buffer.fillTriangle(verts2[t][0], verts2[t][1], verts2[t][2], text[t][0], text[t][1], text[t][2]);
         }
     }
 }
