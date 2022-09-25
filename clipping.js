@@ -1,11 +1,6 @@
 import { Vector2, Vector3 } from "./Math/vector.js";
 
 function lerp(a, b, t) {
-
-    if (a == b) return a;
-    if (t < 0) t = 0;
-    if (t > 1) t = 1;
-
     return a * (1 - t) + b * t;
 }
 
@@ -46,7 +41,14 @@ function oneVertClip(v1, v2, v3, uv1, uv2, uv3, d1, d2, d3) { //v1 is the vert t
     let t2 = d2 / (d2 - d1);
     let t3 = d3 / (d3 - d1);
 
-    return [[v1, uv1], [Vector3.lerp(v2, v1, t2), Vector2.lerp(uv2, uv1, t2)], [Vector3.lerp(v3, v1, t3), Vector2.lerp(uv3, uv1, t3)]];
+
+    let _v2 = Vector3.lerp(v2, v1, t2);
+    let _v3 = Vector3.lerp(v3, v1, t3);
+    let _uv2 = Vector2.lerp(uv2, uv1, t2);
+    let _uv3 = Vector2.lerp(uv3, uv1, t3);
+
+
+    return [[v1, _v2, _v3], [uv1, _uv2, _uv3]];
 }
 
 function twoVertClip(v1, v2, v3, uv1, uv2, uv3, d1, d2, d3) { //v1 and v2 are the verts that pass
@@ -54,10 +56,16 @@ function twoVertClip(v1, v2, v3, uv1, uv2, uv3, d1, d2, d3) { //v1 and v2 are th
     let t2 = d1 / (d1 - d2);
     let t3 = d1 / (d1 - d3);
 
-    return [[v2, uv2], [v3, uv3], [Vector3.lerp(v1, v3, t3), Vector2.lerp(uv1, uv3, t3)], [Vector3.lerp(v1, v2, t2), Vector2.lerp(uv1, uv2, t2)]];
+    let _v2 = Vector3.lerp(v1, v2, t2);
+    let _v3 = Vector3.lerp(v1, v3, t3);
+    let _uv2 = Vector2.lerp(uv1, uv2, t2);
+    let _uv3 = Vector2.lerp(uv1, uv3, t3);
+
+
+    return [[ [v2, v3, _v3], [_v3, _v2, v2] ], [ [uv2, uv3, _uv3], [_uv3, _uv2, uv2] ]];
 }
 
-export function planeTriClip(v1, v2, v3, uv1, uv2, uv3, vertices, plane, plane_n) {
+export function planeTriClip(v1, v2, v3, uv1, uv2, uv3, vertices, tex_coords, plane, plane_n) {
     const plane_d = -Vector3.dot(plane_n, plane);
 
     let d1 = Vector3.dot(v1, plane_n) + plane_d;
@@ -66,7 +74,8 @@ export function planeTriClip(v1, v2, v3, uv1, uv2, uv3, vertices, plane, plane_n
 
 
     if (d1 > 0 && d2 > 0 && d3 > 0) { //All pass
-        vertices.push([v1, uv1], [v2, uv2], [v3, uv3]);
+        vertices.push([v1, v2, v3]);
+        tex_coords.push([uv1, uv2, uv3]);
         return true;
 
     } else if (d1 < 0 && d2 < 0 && d3 < 0) { //None Pass
@@ -74,26 +83,37 @@ export function planeTriClip(v1, v2, v3, uv1, uv2, uv3, vertices, plane, plane_n
         
     } else if (d1 > 0 ^ d2 > 0 ^ d3 > 0) { //only one vertex passes
         if (d1 > 0) {
-            for (let i of oneVertClip(v1, v2, v3, uv1, uv2, uv3, d1, d2, d3)) vertices.push(i);
+            let v = oneVertClip(v1, v2, v3, uv1, uv2, uv3, d1, d2, d3);
+            vertices.push(v[0]);
+            tex_coords.push(v[1]);
             return true;
             
         } else if (d2 > 0) {
-            for (let i of oneVertClip(v2, v1, v3, uv2, uv1, uv3, d2, d1, d3)) vertices.push(i);
-            return true;
-            
+            let v = oneVertClip(v2, v1, v3, uv2, uv1, uv3, d2, d1, d3);
+            vertices.push(v[0]);
+            tex_coords.push(v[1]);
+            return true; 
         } else if (d3 > 0) {
-            for (let i of oneVertClip(v3, v1, v2, uv3, uv1, uv2, d3, d1, d2)) vertices.push(i);
+            let v = oneVertClip(v3, v1, v2, uv3, uv1, uv2, d3, d1, d2);
+            vertices.push(v[0]);
+            tex_coords.push(v[1]);
             return true;
         }
     } else { //two vertices pass
         if (d1 < 0) {
-            for (let i of twoVertClip(v1, v2, v3, uv1, uv2, uv3, d1, d2, d3)) vertices.push(i);
+            let v = twoVertClip(v1, v2, v3, uv1, uv2, uv3, d1, d2, d3);
+            vertices.push(v[0][0], v[0][1]);
+            tex_coords.push(v[1][0], v[1][1]);
             return true;
         } else if (d2 < 0) {
-            for (let i of twoVertClip(v2, v1, v3, uv2, uv1, uv3, d2, d1, d3)) vertices.push(i);
+            let v = twoVertClip(v2, v1, v3, uv2, uv1, uv3, d2, d1, d3);
+            vertices.push(v[0][0], v[0][1]);
+            tex_coords.push(v[1][0], v[1][1]);
             return true;
         } else if (d3 < 0) {
-            for (let i of twoVertClip(v3, v1, v2, uv3, uv1, uv2, d3, d1, d2)) vertices.push(i);
+            let v = twoVertClip(v3, v1, v2, uv3, uv1, uv2, d3, d1, d2);
+            vertices.push(v[0][0], v[0][1]);
+            tex_coords.push(v[1][0], v[1][1]);
             return true;
         }
     }

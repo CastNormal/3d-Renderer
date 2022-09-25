@@ -44,6 +44,16 @@ function moveCamera(event) {
         case 'ArrowDown':
             down = state;
             break;
+        case '1':
+            xRot -= 0.05;
+            break;
+        case '2':
+            xRot += 0.05;
+        case '3':
+            zRot -= 0.05;
+            break;
+        case '4':
+            zRot += 0.05;
     }
 }
 
@@ -99,8 +109,8 @@ let projection_matrix = Matrix.projectionMatrix(near, far, fov, aspect_ratio);
 function loop() {
     window.requestAnimationFrame(loop);
 
-    xRot = (mouse.x / canvas.width - 0.5) * 16;
-    zRot = (mouse.y / canvas.height - 0.5) * 2;
+    //xRot = (mouse.x / canvas.width - 0.5) * 16;
+    //zRot = (mouse.y / canvas.height - 0.5) * 2;
 
     move();
 

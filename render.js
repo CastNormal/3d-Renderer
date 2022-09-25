@@ -36,14 +36,14 @@ export class Buffer {
         const Y = new Color(255, 255, 0);
 
         this.#texture = [
-            [ Y, R, Y, R, B, R, B, R ],
-            [ R, Y, R, Y, R, B, R, B ],
-            [ Y, R, Y, R, B, R, B, R ],
-            [ R, Y, R, Y, R, B, R, B ],
-            [ Y, R, Y, R, B, R, B, R ],
-            [ R, Y, R, Y, R, B, R, B ],
-            [ Y, R, Y, R, B, R, B, R ],
-            [ R, Y, R, Y, R, B, R, B ]
+            [Y, R, Y, R, B, R, B, R],
+            [R, Y, R, Y, R, B, R, B],
+            [Y, R, Y, R, B, R, B, R],
+            [R, Y, R, Y, R, B, R, B],
+            [Y, R, Y, R, B, R, B, R],
+            [R, Y, R, Y, R, B, R, B],
+            [Y, R, Y, R, B, R, B, R],
+            [R, Y, R, Y, R, B, R, B]
         ];
     }
 
@@ -57,7 +57,7 @@ export class Buffer {
 
         if (z > this.#zbuffer[y * this.#width + x]) return;
         //console.log(z, this.#zbuffer[y * this.#width + x]);
-        
+
         this.#zbuffer[y * this.#width + x] = z;
 
         this.#buffer.data[i + 0] = color.r;
@@ -69,43 +69,43 @@ export class Buffer {
     draw() {
         this.#context.putImageData(this.#buffer, 0, 0);
     }
-/*
-    drawLine(v1, v2, color) {
-
-        let x0 = Math.round(v1.x);
-        let y0 = Math.round(v1.y);
-        let x1 = Math.round(v2.x);
-        let y1 = Math.round(v2.y);
-
-        let dx = Math.abs(x1 - x0);
-        let dy = Math.abs(y1 - y0);
-
-        let sw = false;
-
-        if (dx < dy) {
-            [x0, y0] = [y0, x0];
-            [x1, y1] = [y1, x1];
-            [dx, dy] = [dy, dx];
-            sw = true;
-        }
-
-        let error = 2 * dy - dx;
-
-        for (let i = 0; i <= dx; i++) {
-            (!sw) ? this.setPixel(x0, y0, color) : this.setPixel(y0, x0, color);
-        
-            (x0 < x1) ? x0++ : x0--;
-            if (error < 0) {
-                error += 2 * dy;
-            } else {
-                (y0 < y1) ? y0++ : y0--;
-                error = error + 2 * dy - 2 * dx;
+    /*
+        drawLine(v1, v2, color) {
+    
+            let x0 = Math.round(v1.x);
+            let y0 = Math.round(v1.y);
+            let x1 = Math.round(v2.x);
+            let y1 = Math.round(v2.y);
+    
+            let dx = Math.abs(x1 - x0);
+            let dy = Math.abs(y1 - y0);
+    
+            let sw = false;
+    
+            if (dx < dy) {
+                [x0, y0] = [y0, x0];
+                [x1, y1] = [y1, x1];
+                [dx, dy] = [dy, dx];
+                sw = true;
             }
-        }
-    }*/
+    
+            let error = 2 * dy - dx;
+    
+            for (let i = 0; i <= dx; i++) {
+                (!sw) ? this.setPixel(x0, y0, color) : this.setPixel(y0, x0, color);
+            
+                (x0 < x1) ? x0++ : x0--;
+                if (error < 0) {
+                    error += 2 * dy;
+                } else {
+                    (y0 < y1) ? y0++ : y0--;
+                    error = error + 2 * dy - 2 * dx;
+                }
+            }
+        }*/
 
     #drawHorLine(x0, x1, z0, z1, y, u0, u1, v0, v1) {
-        
+
         if (x0 > x1) {
             [x0, x1] = [x1, x0];
             [z0, z1] = [z1, z0];
@@ -116,14 +116,14 @@ export class Buffer {
         let length = x1 - x0;
 
         if (x0 == x1) {
-            
+
             let tex_x = Math.floor(u0 * 8 / z0);
             let tex_y = Math.floor(v0 * 8 / z0);
 
             tex_x = clamp(tex_x, 0, 7);
             tex_y = clamp(tex_y, 0, 7);
 
-            this.setPixel(x0, y, 1/z0, this.#texture[tex_y][tex_x]);
+            this.setPixel(x0, y, 1 / z0, this.#texture[tex_y][tex_x]);
             return;
         }
 
@@ -137,7 +137,7 @@ export class Buffer {
             let z = lerp(z0, z1, xt);
             let lx = lerp(u0, u1, xt);
             let ly = lerp(v0, v1, xt);
-            
+
             let tex_x = Math.floor(lx * 8 / z);
             let tex_y = Math.floor(ly * 8 / z);
 
@@ -145,14 +145,14 @@ export class Buffer {
             tex_y = clamp(tex_y, 0, 7);
 
             let color = this.#texture[tex_y][tex_x];
-            this.setPixel(x, y, 1/z, color);
+            this.setPixel(x, y, 1 / z, color);
 
             xt += x_step;
         }
     }
 
     #bottomFlatTriangle(p1, p2, p3, uv1, uv2, uv3) {
-        
+
         let invslope1 = (p2.x - p1.x) / (p2.y - p1.y);
         let invslope2 = (p3.x - p1.x) / (p3.y - p1.y);
 
@@ -232,7 +232,7 @@ export class Buffer {
         te1.x = te1.x / p1.z;
         te2.x = te2.x / p2.z;
         te3.x = te3.x / p3.z;
-        
+
         te1.y = te1.y / p1.z;
         te2.y = te2.y / p2.z;
         te3.y = te3.y / p3.z;
@@ -297,34 +297,11 @@ export function fillMesh(buffer, mesh, camera, projection_matrix, xRot, zRot) {
     let fMatrix = Matrix.MatMult(Matrix.MatMult(world_matrix, view_matrix), projection_matrix);
 
     for (let i in mesh.faces) {
-        //if (!(i == 1 || i == 7)) continue;
-
         let v = [
             Matrix.MatVecMult(fMatrix, mesh.vertices[mesh.faces[i].v1]),
             Matrix.MatVecMult(fMatrix, mesh.vertices[mesh.faces[i].v2]),
             Matrix.MatVecMult(fMatrix, mesh.vertices[mesh.faces[i].v3])
         ];
-
-        let uv = [
-            mesh.faces[i].uv1,
-            mesh.faces[i].uv2,
-            mesh.faces[i].uv3
-        ];
-
-        let verts = [];
-
-        if (!planeTriClip(v[0], v[1], v[2], uv[0], uv[1], uv[2], verts, new Vector3(0, 0, 1), new Vector3(0, 0, 1))) continue;
-
-        for (let k in verts) {
-            //pDivide(verts[k]);
-            //verts[k] = mat4x4VecMult(screenMatrix(canvas.width, canvas.height), verts[k]);
-            verts[k][0].x /= verts[k][0].w;
-            verts[k][0].y /= verts[k][0].w;
-            verts[k][0].z /= verts[k][0].w;
-
-            verts[k][0].x = verts[k][0].x * canvas.width/2 + canvas.width/2;
-            verts[k][0].y = verts[k][0].y * -canvas.height/2 + canvas.height/2;
-        }
 
         let nv1 = Matrix.MatVecMult(world_matrix, mesh.vertices[mesh.faces[i].v1]);
         let nv2 = Matrix.MatVecMult(world_matrix, mesh.vertices[mesh.faces[i].v2]);
@@ -337,12 +314,42 @@ export function fillMesh(buffer, mesh, camera, projection_matrix, xRot, zRot) {
 
         if (Vector3.dot(normal, Vector3.sub(nv1, camera.pos)) > 0) continue;
 
-        if (verts.length == 3) {
-            buffer.fillTriangle(verts[0][0], verts[1][0], verts[2][0], verts[0][1], verts[1][1], verts[2][1]);
+        let uv = [
+            mesh.faces[i].uv1,
+            mesh.faces[i].uv2,
+            mesh.faces[i].uv3
+        ];
+
+        let verts = [];
+        let verts2 = [];
+        let text = [];
+
+        if (!planeTriClip(v[0], v[1], v[2], uv[0], uv[1], uv[2], verts, text, new Vector3(0, 0, 1), new Vector3(0, 0, 1))) continue;
+
+        for (let j of verts) {
+            let tri = [];
+
+            for (let k = 0; k < 3; k++) {
+
+                let w = j[k].w;
+                let x = j[k].x / j[k].w;
+                let y = j[k].y / j[k].w;
+                let z = j[k].z / j[k].w;
+
+                x = x * (canvas.width/2) + (canvas.width/2);
+                y = y * (-canvas.height/2) + (canvas.height/2);
+
+                tri.push(new Vector3(x, y, z, w));
+            }
+
+            verts2.push(tri);
         }
-        else {
-            buffer.fillTriangle(verts[0][0], verts[1][0], verts[2][0], verts[0][1], verts[1][1], verts[2][1]);
-            buffer.fillTriangle(verts[2][0], verts[3][0], verts[0][0], verts[2][1], verts[3][1], verts[0][1]);
+
+        if (verts2.length == 1) {
+            buffer.fillTriangle(verts2[0][0], verts2[0][1], verts2[0][2], text[0][0], text[0][1], text[0][2]);
+        } else if (verts2.length == 2) {
+            buffer.fillTriangle(verts2[0][0], verts2[0][1], verts2[0][2], text[0][0], text[0][1], text[0][2]);
+            buffer.fillTriangle(verts2[1][0], verts2[1][1], verts2[1][2], text[1][0], text[1][1], text[1][2]);
         }
     }
 }
