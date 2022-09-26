@@ -59,7 +59,7 @@ function moveCamera(event) {
 }
 
 function move() {
-    let mv = 0.5;
+    let mv = 0.1;
 
     if (forward) {
         camera.pos.z += mv;
@@ -117,9 +117,9 @@ function loop() {
     buffer.clearDepthBuffer();
 
     fillMesh(buffer, cube0, camera, projection_matrix);
-    fillMesh(buffer, cube1, camera, projection_matrix);
-    fillMesh(buffer, cube2, camera, projection_matrix);
-    fillMesh(buffer, cube3, camera, projection_matrix);
+    //fillMesh(buffer, cube1, camera, projection_matrix);
+    //fillMesh(buffer, cube2, camera, projection_matrix);
+    //fillMesh(buffer, cube3, camera, projection_matrix);
 
     buffer.draw();
 }

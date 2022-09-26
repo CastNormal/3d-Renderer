@@ -65,58 +65,78 @@ function twoVertClip(v1, v2, v3, uv1, uv2, uv3, d1, d2, d3) { //v1 and v2 are th
     return [[ [v2, v3, _v3], [_v3, _v2, v2] ], [ [uv2, uv3, _uv3], [_uv3, _uv2, uv2] ]];
 }
 
-export function planeTriClip(v1, v2, v3, uv1, uv2, uv3, vertices, tex_coords, plane, plane_n) {
-    const plane_d = -Vector3.dot(plane_n, plane);
+export function planeTriClip(vertices_in, texture_in, vertices_out, texture_out, plane, plane_normal) {
 
-    let d1 = Vector3.dot(v1, plane_n) + plane_d;
-    let d2 = Vector3.dot(v2, plane_n) + plane_d;
-    let d3 = Vector3.dot(v3, plane_n) + plane_d;
+    let length = vertices_in.length;
+
+    for (let i = 0; i < length; i++) {
+
+        //console.log(v1)
+
+        let v1 = vertices_in[i][0];
+        let v2 = vertices_in[i][1];
+        let v3 = vertices_in[i][2];
+
+        let uv1 = texture_in[i][0];
+        let uv2 = texture_in[i][1];
+        let uv3 = texture_in[i][2];
+
+        const plane_n = Vector3.normalize(plane_normal);
+        const plane_d = -Vector3.dot(plane_n, plane);
+
+        let d1 = Vector3.dot(v1, plane_n) + plane_d;
+        let d2 = Vector3.dot(v2, plane_n) + plane_d;
+        let d3 = Vector3.dot(v3, plane_n) + plane_d;
 
 
-    if (d1 > 0 && d2 > 0 && d3 > 0) { //All pass
-        vertices.push([v1, v2, v3]);
-        tex_coords.push([uv1, uv2, uv3]);
-        return true;
+        if (d1 > 0 && d2 > 0 && d3 > 0) { //All pass
+            vertices_out.push([v1, v2, v3]);
+            texture_out.push([uv1, uv2, uv3]);
+            //return true;
+            continue;
 
-    } else if (d1 < 0 && d2 < 0 && d3 < 0) { //None Pass
-        return false;
-        
-    } else if (d1 > 0 ^ d2 > 0 ^ d3 > 0) { //only one vertex passes
-        if (d1 > 0) {
-            let v = oneVertClip(v1, v2, v3, uv1, uv2, uv3, d1, d2, d3);
-            vertices.push(v[0]);
-            tex_coords.push(v[1]);
-            return true;
-            
-        } else if (d2 > 0) {
-            let v = oneVertClip(v2, v1, v3, uv2, uv1, uv3, d2, d1, d3);
-            vertices.push(v[0]);
-            tex_coords.push(v[1]);
-            return true; 
-        } else if (d3 > 0) {
-            let v = oneVertClip(v3, v1, v2, uv3, uv1, uv2, d3, d1, d2);
-            vertices.push(v[0]);
-            tex_coords.push(v[1]);
-            return true;
-        }
-    } else { //two vertices pass
-        if (d1 < 0) {
-            let v = twoVertClip(v1, v2, v3, uv1, uv2, uv3, d1, d2, d3);
-            vertices.push(v[0][0], v[0][1]);
-            tex_coords.push(v[1][0], v[1][1]);
-            return true;
-        } else if (d2 < 0) {
-            let v = twoVertClip(v2, v1, v3, uv2, uv1, uv3, d2, d1, d3);
-            vertices.push(v[0][0], v[0][1]);
-            tex_coords.push(v[1][0], v[1][1]);
-            return true;
-        } else if (d3 < 0) {
-            let v = twoVertClip(v3, v1, v2, uv3, uv1, uv2, d3, d1, d2);
-            vertices.push(v[0][0], v[0][1]);
-            tex_coords.push(v[1][0], v[1][1]);
-            return true;
+        } else if (d1 < 0 && d2 < 0 && d3 < 0) { //None Pass
+            //return false;
+            continue;
+
+        } else if (d1 > 0 ^ d2 > 0 ^ d3 > 0) { //only one vertex passes
+            if (d1 > 0) {
+                let v = oneVertClip(v1, v2, v3, uv1, uv2, uv3, d1, d2, d3);
+                vertices_out.push(v[0]);
+                texture_out.push(v[1]);
+
+            } else if (d2 > 0) {
+                let v = oneVertClip(v2, v1, v3, uv2, uv1, uv3, d2, d1, d3);
+                vertices_out.push(v[0]);
+                texture_out.push(v[1]);
+            } else if (d3 > 0) {
+                let v = oneVertClip(v3, v1, v2, uv3, uv1, uv2, d3, d1, d2);
+                vertices_out.push(v[0]);
+                texture_out.push(v[1]);
+            }
+            //return true;
+            continue;
+        } else { //two vertices pass
+            if (d1 < 0) {
+                let v = twoVertClip(v1, v2, v3, uv1, uv2, uv3, d1, d2, d3);
+                vertices_out.push(v[0][0], v[0][1]);
+                texture_out.push(v[1][0], v[1][1]);
+            } else if (d2 < 0) {
+                let v = twoVertClip(v2, v1, v3, uv2, uv1, uv3, d2, d1, d3);
+                vertices_out.push(v[0][0], v[0][1]);
+                texture_out.push(v[1][0], v[1][1]);
+            } else if (d3 < 0) {
+                let v = twoVertClip(v3, v1, v2, uv3, uv1, uv2, d3, d1, d2);
+                vertices_out.push(v[0][0], v[0][1]);
+                texture_out.push(v[1][0], v[1][1]);
+            }
+            //return true;
+            continue;
         }
     }
+
+    if (!vertices_out.length) return false;
+    return true;
 }
 
 export function LineClip2d(v1, v2, bx, by, bwidth, bheight) {

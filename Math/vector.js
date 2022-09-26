@@ -1,3 +1,11 @@
+function lerp(a, b, t) {
+  if (a == b) return a;
+  if (t > 1) t = 1;
+  if (t < 0) t = 0; 
+
+  return (1 - t) * a + b * t;
+}
+
 function toVector2(v) {
     if (v instanceof Vector2) return v;
     else if (Array.isArray(v)) {
@@ -79,9 +87,9 @@ export class Vector2 {
 
         if (!_v1 || !_v2 || typeof t !== "number") throw new Error("Invalid argument");
         return new Vector2(
-            (1 - t) * _v1.x + t * _v2.x,
-            (1 - t) * _v1.y + t * _v2.y,
-            (1 - t) * _v1.w + t * _v2.w
+          lerp(_v1.x, _v2.x, t),
+          lerp(_v1.y, _v2.y, t),
+          lerp(_v1.w, _v2.w, t)
         );
     }
 
@@ -193,10 +201,10 @@ export class Vector3 {
 
         if (!_v1 || !_v2 || typeof t !== "number") throw new Error("Invalid argument");
         return new Vector3(
-            (1 - t) * _v1.x + t * _v2.x,
-            (1 - t) * _v1.y + t * _v2.y,
-            (1 - t) * _v1.z + t * _v2.z,
-            (1 - t) * _v1.w + t * _v2.w
+            lerp(_v1.x, _v2.x, t),
+            lerp(_v1.y, _v2.y, t),
+            lerp(_v1.z, _v2.z, t),
+            lerp(_v1.w, _v2.w, t)
         );
     }
 
