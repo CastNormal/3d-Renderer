@@ -2,7 +2,7 @@ import { Vector2, Vector3 } from "./Math/vector.js"
 import { Cube, Mesh, Tri } from "./Objects/mesh.js"
 import { Color } from "./Util/color.js"
 import { Matrix } from "./Math/matrix.js"
-import { planeTriClip } from "./clipping.js";
+import { leftTriClip, planeTriClip } from "./clipping.js";
 
 function lerp(a, b, t) {
     return a * (1 - t) + b * t;
@@ -219,22 +219,7 @@ export class Buffer {
         }
     }
 
-    fillTriangle(v1, v2, v3, uv1, uv2, uv3) {
-
-        let ve = [];
-        let te = [];
-
-        //left
-        //planeTriClip([[v1, v2, v3]], [[uv1, uv2, uv3]], ve, te, new Vector3(50, 0, 0), new Vector3(1, 0, 0));
-        //right
-        //planeTriClip(v1, v2, v3, uv1, uv2, uv3, ve, te, new Vector3(this.#width-50, 0, 0), new Vector3(-1, 0, 0));
-        //top
-        //planeTriClip(v1, v2, v3, uv1, uv2, uv3, ve, te, new Vector3(0, 50, 0), new Vector3(0, 1, 0));
-        //bottom
-        //planeTriClip(v1, v2, v3, uv1, uv2, uv3, ve, te, new Vector3(0, this.#height-50, 0), new Vector3(0, -1, 0));
-
-
-        
+    fillTriangle(v1, v2, v3, uv1, uv2, uv3) {        
         let p1 = new Vector3(Math.round(v1.x), Math.round(v1.y), v1.w);
         let p2 = new Vector3(Math.round(v2.x), Math.round(v2.y), v2.w);
         let p3 = new Vector3(Math.round(v3.x), Math.round(v3.y), v3.w);
@@ -242,67 +227,54 @@ export class Buffer {
         let te1 = new Vector2(uv1.x, uv1.y);
         let te2 = new Vector2(uv2.x, uv2.y);
         let te3 = new Vector2(uv3.x, uv3.y);
-        
-/*
-        for (let i in ve) {
 
-            let p1 = new Vector3(Math.round(ve[i][0].x), Math.round(ve[i][0].y), ve[i][0].w);
-            let p2 = new Vector3(Math.round(ve[i][1].x), Math.round(ve[i][1].y), ve[i][1].w);
-            let p3 = new Vector3(Math.round(ve[i][2].x), Math.round(ve[i][2].y), ve[i][2].w);
+        te1.x = te1.x / p1.z;
+        te2.x = te2.x / p2.z;
+        te3.x = te3.x / p3.z;
 
-            let te1 = new Vector2(te[i][0].x, te[i][0].y);
-            let te2 = new Vector2(te[i][1].x, te[i][1].y);
-            let te3 = new Vector2(te[i][2].x, te[i][2].y);*/
+        te1.y = te1.y / p1.z;
+        te2.y = te2.y / p2.z;
+        te3.y = te3.y / p3.z;
 
+        p1.z = 1 / p1.z;
+        p2.z = 1 / p2.z;
+        p3.z = 1 / p3.z;
 
-            te1.x = te1.x / p1.z;
-            te2.x = te2.x / p2.z;
-            te3.x = te3.x / p3.z;
+        if (p1.y == p2.y && p2.y == p3.y) return;
 
-            te1.y = te1.y / p1.z;
-            te2.y = te2.y / p2.z;
-            te3.y = te3.y / p3.z;
+        if (p2.y < p1.y) {
+            [p2, p1] = [p1, p2];
+            [te2, te1] = [te1, te2];
+        }
 
-            p1.z = 1 / p1.z;
-            p2.z = 1 / p2.z;
-            p3.z = 1 / p3.z;
+        if (p3.y < p2.y) {
+            [p3, p2] = [p2, p3];
+            [te3, te2] = [te2, te3];
+        }
 
-            if (p1.y == p2.y && p2.y == p3.y) return;
-
-            if (p2.y < p1.y) {
-                [p2, p1] = [p1, p2];
-                [te2, te1] = [te1, te2];
-            }
-
-            if (p3.y < p2.y) {
-                [p3, p2] = [p2, p3];
-                [te3, te2] = [te2, te3];
-            }
-
-            if (p2.y < p1.y) {
-                [p2, p1] = [p1, p2];
-                [te2, te1] = [te1, te2];
-            }
+        if (p2.y < p1.y) {
+            [p2, p1] = [p1, p2];
+            [te2, te1] = [te1, te2];
+        }
 
 
-            if (p1.y == p2.y) {
-                this.#topFlatTriangle(p1, p2, p3, te1, te2, te3);
-            } else if (p2.y == p3.y) {
-                this.#bottomFlatTriangle(p1, p2, p3, te1, te2, te3);
-            } else {
+        if (p1.y == p2.y) {
+            this.#topFlatTriangle(p1, p2, p3, te1, te2, te3);
+        } else if (p2.y == p3.y) {
+            this.#bottomFlatTriangle(p1, p2, p3, te1, te2, te3);
+        } else {
 
-                let p4 = new Vector3;
-                p4.x = (p1.x + ((p2.y - p1.y) / (p3.y - p1.y)) * (p3.x - p1.x));
-                p4.y = p2.y;
-                p4.z = (p1.z == p3.z) ? p1.z : lerp(p1.z, p3.z, (p1.y - p4.y) / (p1.y - p3.y));
+            let p4 = new Vector3;
+            p4.x = (p1.x + ((p2.y - p1.y) / (p3.y - p1.y)) * (p3.x - p1.x));
+            p4.y = p2.y;
+            p4.z = (p1.z == p3.z) ? p1.z : lerp(p1.z, p3.z, (p1.y - p4.y) / (p1.y - p3.y));
 
-                let te4 = new Vector2;
-                te4.x = lerp(te1.x, te3.x, (p1.y - p4.y) / (p1.y - p3.y));
-                te4.y = lerp(te1.y, te3.y, (p1.y - p4.y) / (p1.y - p3.y));
+            let te4 = new Vector2;
+            te4.x = lerp(te1.x, te3.x, (p1.y - p4.y) / (p1.y - p3.y));
+            te4.y = lerp(te1.y, te3.y, (p1.y - p4.y) / (p1.y - p3.y));
 
-                this.#bottomFlatTriangle(p1, p2, p4, te1, te2, te4);
-                this.#topFlatTriangle(p2, p4, p3, te2, te4, te3);
-            //}
+            this.#bottomFlatTriangle(p1, p2, p4, te1, te2, te4);
+            this.#topFlatTriangle(p2, p4, p3, te2, te4, te3);
         }
     }
 
@@ -318,10 +290,10 @@ export class Buffer {
     }
 }
 
-export function fillMesh(buffer, mesh, camera, projection_matrix) {
+export function fillMesh(buffer, mesh, camera, projection_matrix, as) {
     let world_matrix = Matrix.worldMatrix(mesh);
     let view_matrix = Matrix.FPSview(camera.pos, camera.rot.z, camera.rot.x);
-    let fMatrix = Matrix.MatMult(Matrix.MatMult(world_matrix, view_matrix), projection_matrix);
+    let to_proj = Matrix.MatMult(view_matrix, projection_matrix);
 
     for (let i in mesh.faces) {
         let v = [[
@@ -343,28 +315,20 @@ export function fillMesh(buffer, mesh, camera, projection_matrix) {
 
         if (Vector3.dot(normal, Vector3.sub(v[0][0], camera.pos)) > 0) continue;
 
-        v[0][0] = Matrix.MatVecMult(view_matrix, v[0][0]);
-        v[0][1] = Matrix.MatVecMult(view_matrix, v[0][1]);
-        v[0][2] = Matrix.MatVecMult(view_matrix, v[0][2]);
+        v[0][0] = Matrix.MatVecMult(to_proj, v[0][0]);
+        v[0][1] = Matrix.MatVecMult(to_proj, v[0][1]);
+        v[0][2] = Matrix.MatVecMult(to_proj, v[0][2]);
 
         let verts = [];
-        let verts2 = [];
-        let text = [];
 
-        float sh =  sin(angle_horizontal);
-  float sv =  sin(angle_vertical);
-  float ch =  cos(angle_horizontal);
-  float cv =  cos(angle_vertical)
+        leftTriClip(v, uv, new Vector3(0, 0, 1), new Vector3(0, 0, 1));
 
-        //if (!planeTriClip(v, uv, verts, text, new Vector3(0, 0, 2), new Vector3(0, 0, 1))) continue;
-        if (!planeTriClip(v, uv, verts, text, new Vector3(1, 0, 1), new Vector3(1, 0, 1))) continue;
-
-        for (let j of verts) {
+        for (let j of v) {
             let tri = [];
 
             for (let k = 0; k < 3; k++) {
 
-                let vec = Matrix.MatVecMult(projection_matrix, j[k]);
+                let vec = j[k];
 
                 vec.x /= vec.w;
                 vec.y /= vec.w;
@@ -376,63 +340,9 @@ export function fillMesh(buffer, mesh, camera, projection_matrix) {
                 tri.push(vec);
             }
 
-            verts2.push(tri);
+            verts.push(tri);
         }
 
-        for (let t in verts2) buffer.fillTriangle(verts2[t][0], verts2[t][1], verts2[t][2], text[t][0], text[t][1], text[t][2]);
-        /*
-        let v = [[
-            Matrix.MatVecMult(fMatrix, mesh.vertices[mesh.faces[i].v1]),
-            Matrix.MatVecMult(fMatrix, mesh.vertices[mesh.faces[i].v2]),
-            Matrix.MatVecMult(fMatrix, mesh.vertices[mesh.faces[i].v3])
-        ]];
-
-        let nv1 = Matrix.MatVecMult(world_matrix, mesh.vertices[mesh.faces[i].v1]);
-        let nv2 = Matrix.MatVecMult(world_matrix, mesh.vertices[mesh.faces[i].v2]);
-        let nv3 = Matrix.MatVecMult(world_matrix, mesh.vertices[mesh.faces[i].v3]);
-
-        let line1 = Vector3.sub(nv2, nv1);
-        let line2 = Vector3.sub(nv3, nv1);
-
-        let normal = Vector3.cross(line1, line2);
-
-        if (Vector3.dot(normal, Vector3.sub(nv1, camera.pos)) > 0) continue;
-
-        let uv = [[
-            mesh.faces[i].uv1,
-            mesh.faces[i].uv2,
-            mesh.faces[i].uv3
-        ]];
-
-        let verts = [];
-        let verts2 = [];
-        let text = [];
-
-        if (!planeTriClip(v, uv, verts, text, new Vector3(0, 0, 1), new Vector3(0, 0, 1))) continue;
-
-        for (let j of verts) {
-            let tri = [];
-
-            for (let k = 0; k < 3; k++) {
-
-                let w = j[k].w;
-                let x = j[k].x / j[k].w;
-                let y = j[k].y / j[k].w;
-                let z = j[k].z / j[k].w;
-
-                x = x * (canvas.width/2) + (canvas.width/2);
-                y = y * (-canvas.height/2) + (canvas.height/2);
-
-                tri.push(new Vector3(x, y, z, w));
-            }
-
-            verts2.push(tri);
-        }
-
-        for (let t in verts2) {
-            
-            buffer.fillTriangle(verts2[t][0], verts2[t][1], verts2[t][2], text[t][0], text[t][1], text[t][2]);
-        }
-        */
+        for (let t in verts) buffer.fillTriangle(verts[t][0], verts[t][1], verts[t][2], uv[t][0], uv[t][1], uv[t][2]);
     }
 }

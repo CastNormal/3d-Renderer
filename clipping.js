@@ -35,6 +35,36 @@ export function nearLineClip(v1, v2, near) {
     }
     return true;
 }
+/*
+function oneVertClip(v1, v2, v3, uv1, uv2, uv3, d1, d2, d3) { //v1 is the vert that passes test
+
+    let t2 = d2 / (d2 - d1);
+    let t3 = d3 / (d3 - d1);
+
+
+    let _v2 = Vector3.lerp(v2, v1, t2);
+    let _v3 = Vector3.lerp(v3, v1, t3);
+    let _uv2 = Vector2.lerp(uv2, uv1, t2);
+    let _uv3 = Vector2.lerp(uv3, uv1, t3);
+
+
+    return [[v1, _v2, _v3], [uv1, _uv2, _uv3]];
+}
+
+function twoVertClip(v1, v2, v3, uv1, uv2, uv3, d1, d2, d3) { //v1 and v2 are the verts that pass
+
+    let t2 = d1 / (d1 - d2);
+    let t3 = d1 / (d1 - d3);
+
+    let _v2 = Vector3.lerp(v1, v2, t2);
+    let _v3 = Vector3.lerp(v1, v3, t3);
+    let _uv2 = Vector2.lerp(uv1, uv2, t2);
+    let _uv3 = Vector2.lerp(uv1, uv3, t3);
+
+
+    return [[ [v2, v3, _v3], [_v3, _v2, v2] ], [ [uv2, uv3, _uv3], [_uv3, _uv2, uv2] ]];
+}
+*/
 
 function oneVertClip(v1, v2, v3, uv1, uv2, uv3, d1, d2, d3) { //v1 is the vert that passes test
 
@@ -65,77 +95,108 @@ function twoVertClip(v1, v2, v3, uv1, uv2, uv3, d1, d2, d3) { //v1 and v2 are th
     return [[ [v2, v3, _v3], [_v3, _v2, v2] ], [ [uv2, uv3, _uv3], [_uv3, _uv2, uv2] ]];
 }
 
-export function planeTriClip(vertices_in, texture_in, vertices_out, texture_out, plane, plane_normal) {
 
-    let length = vertices_in.length;
+export function leftTriClip(vertices, texture, plane, plane_n) {
+
+    let v1 = vertices[0][0];
+    let v2 = vertices[0][1];
+    let v3 = vertices[0][2];
+
+    let uv1 = texture[0][0];
+    let uv2 = texture[0][1];
+    let uv3 = texture[0][2];
+
+    let d1 = v1.x + v1.w;
+    let d2 = v2.x + v2.w;
+    let d3 = v3.x + v3.w;
+
+    if (d1 > 0 && d2 > 0 && d3 > 0) return true;
+    else if (d1 <= 0 && d2 <= 0 && d3 <= 0) return false;
+    else if (d1 > 0 ^ d2 > 0 ^ d3 > 0) {
+        /*if (d1 > 0) {
+
+        } else if (d2 > 0) {
+
+        } else {
+
+        }*/
+        console.log("one vert");
+    } else {
+        /*if (d1 <= 0) {
+
+        } else if (d2 <= 0) {
+
+        } else {
+
+        }*/
+        console.log("two verts");
+    }
+
+    return true;
+}
+
+export function planeTriClip(vertices, texture, plane, plane_n) {
+
+    let length = vertices.length;
 
     for (let i = 0; i < length; i++) {
 
-        //console.log(v1)
+        let v1 = vertices[i][0];
+        let v2 = vertices[i][1];
+        let v3 = vertices[i][2];
 
-        let v1 = vertices_in[i][0];
-        let v2 = vertices_in[i][1];
-        let v3 = vertices_in[i][2];
+        let uv1 = texture[i][0];
+        let uv2 = texture[i][1];
+        let uv3 = texture[i][2];
 
-        let uv1 = texture_in[i][0];
-        let uv2 = texture_in[i][1];
-        let uv3 = texture_in[i][2];
+        let d1 = Vector3.dot(v1, plane_n) - Vector3.dot(plane, plane_n);
+        let d2 = Vector3.dot(v2, plane_n) - Vector3.dot(plane, plane_n);
+        let d3 = Vector3.dot(v3, plane_n) - Vector3.dot(plane, plane_n);
 
-        const plane_n = Vector3.normalize(plane_normal);
-        const plane_d = -Vector3.dot(plane_n, plane);
-
-        let d1 = Vector3.dot(v1, plane_n) + plane_d;
-        let d2 = Vector3.dot(v2, plane_n) + plane_d;
-        let d3 = Vector3.dot(v3, plane_n) + plane_d;
-
-
-        if (d1 > 0 && d2 > 0 && d3 > 0) { //All pass
-            vertices_out.push([v1, v2, v3]);
-            texture_out.push([uv1, uv2, uv3]);
-            //return true;
-            continue;
+        if (d1 >= 0 && d2 >= 0 && d3 >= 0) { //All pass
+            //vertices.push([v1, v2, v3]);
+            //texture.push([uv1, uv2, uv3]);
+            return true;
 
         } else if (d1 < 0 && d2 < 0 && d3 < 0) { //None Pass
-            //return false;
-            continue;
+            return false;
+            //continue;
 
         } else if (d1 > 0 ^ d2 > 0 ^ d3 > 0) { //only one vertex passes
             if (d1 > 0) {
                 let v = oneVertClip(v1, v2, v3, uv1, uv2, uv3, d1, d2, d3);
-                vertices_out.push(v[0]);
-                texture_out.push(v[1]);
+                vertices.push(v[0]);
+                texture.push(v[1]);
 
             } else if (d2 > 0) {
                 let v = oneVertClip(v2, v1, v3, uv2, uv1, uv3, d2, d1, d3);
-                vertices_out.push(v[0]);
-                texture_out.push(v[1]);
+                vertices.push(v[0]);
+                texture.push(v[1]);
             } else if (d3 > 0) {
                 let v = oneVertClip(v3, v1, v2, uv3, uv1, uv2, d3, d1, d2);
-                vertices_out.push(v[0]);
-                texture_out.push(v[1]);
+                vertices.push(v[0]);
+                texture.push(v[1]);
             }
-            //return true;
             continue;
         } else { //two vertices pass
             if (d1 < 0) {
                 let v = twoVertClip(v1, v2, v3, uv1, uv2, uv3, d1, d2, d3);
-                vertices_out.push(v[0][0], v[0][1]);
-                texture_out.push(v[1][0], v[1][1]);
+                vertices.push(v[0][0], v[0][1]);
+                texture.push(v[1][0], v[1][1]);
             } else if (d2 < 0) {
                 let v = twoVertClip(v2, v1, v3, uv2, uv1, uv3, d2, d1, d3);
-                vertices_out.push(v[0][0], v[0][1]);
-                texture_out.push(v[1][0], v[1][1]);
+                vertices.push(v[0][0], v[0][1]);
+                texture.push(v[1][0], v[1][1]);
             } else if (d3 < 0) {
                 let v = twoVertClip(v3, v1, v2, uv3, uv1, uv2, d3, d1, d2);
-                vertices_out.push(v[0][0], v[0][1]);
-                texture_out.push(v[1][0], v[1][1]);
+                vertices.push(v[0][0], v[0][1]);
+                texture.push(v[1][0], v[1][1]);
             }
-            //return true;
             continue;
         }
     }
 
-    if (!vertices_out.length) return false;
+    if (!vertices.length) return false;
     return true;
 }
 
