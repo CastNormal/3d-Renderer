@@ -1,8 +1,7 @@
 import { Vector2, Vector3 } from "./Math/vector.js"
-import { Cube, Mesh, Tri } from "./Objects/mesh.js"
 import { Color } from "./Util/color.js"
 import { Matrix } from "./Math/matrix.js"
-import { leftTriClip, planeTriClip } from "./clipping.js";
+import { TriClip } from "./clipping.js";
 
 function lerp(a, b, t) {
     return a * (1 - t) + b * t;
@@ -51,12 +50,10 @@ export class Buffer {
         let i = (y * this.#width + x) * 4;
 
         if (x < 0 || y < 0 || x >= this.#width || y >= this.#height) {
-            //throw new Error("out");
-            return;
+            return; //Because of wonky triangle rasterization
         }
 
         if (z > this.#zbuffer[y * this.#width + x]) return;
-        //console.log(z, this.#zbuffer[y * this.#width + x]);
 
         this.#zbuffer[y * this.#width + x] = z;
 
@@ -290,7 +287,7 @@ export class Buffer {
     }
 }
 
-export function fillMesh(buffer, mesh, camera, projection_matrix, as) {
+export function fillMesh(buffer, mesh, camera, projection_matrix) {
     let world_matrix = Matrix.worldMatrix(mesh);
     let view_matrix = Matrix.FPSview(camera.pos, camera.rot.z, camera.rot.x);
     let to_proj = Matrix.MatMult(view_matrix, projection_matrix);
@@ -320,17 +317,22 @@ export function fillMesh(buffer, mesh, camera, projection_matrix, as) {
         v[0][2] = Matrix.MatVecMult(to_proj, v[0][2]);
 
         let verts = [];
+        let verts2 = [];
+        let tex = [];
+        let temp = [];
 
-        leftTriClip(v, uv, new Vector3(0, 0, 1), new Vector3(0, 0, 1));
+        if (!(temp = TriClip(v, uv))) continue;
+        verts = temp[0];
+        tex = temp[1];
 
-        for (let j of v) {
+        for (let j of verts) {
             let tri = [];
 
             for (let k = 0; k < 3; k++) {
 
-                let vec = j[k];
-
+                let vec = {...j[k]};
                 vec.x /= vec.w;
+
                 vec.y /= vec.w;
                 vec.z /= vec.w;
 
@@ -340,9 +342,9 @@ export function fillMesh(buffer, mesh, camera, projection_matrix, as) {
                 tri.push(vec);
             }
 
-            verts.push(tri);
+            verts2.push(tri);
         }
 
-        for (let t in verts) buffer.fillTriangle(verts[t][0], verts[t][1], verts[t][2], uv[t][0], uv[t][1], uv[t][2]);
+        for (let t in verts2) buffer.fillTriangle(verts2[t][0], verts2[t][1], verts2[t][2], tex[t][0], tex[t][1], tex[t][2]);
     }
 }

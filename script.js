@@ -108,9 +108,6 @@ let projection_matrix = Matrix.projectionMatrix(near, far, fov, aspect_ratio);
 function loop() {
     window.requestAnimationFrame(loop);
 
-    //xRot = (mouse.x / canvas.width - 0.5) * 16;
-    //zRot = (mouse.y / canvas.height - 0.5) * 2;
-
     move();
 
     buffer.clear(canvas.width, canvas.height);
