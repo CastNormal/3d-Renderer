@@ -100,7 +100,7 @@ let cube3 = new Cube(new Vector3(6, 0, 5), new Vector3(0, 0, 0), new Vector3(1, 
 //let cube = new Obj("monke.obj", new Vector3(0, 0, 5), new Vector3(0, 0, 0), 1);
 
 const near = 1;
-const far = 100000;
+const far = 1000;
 const fov = 60;
 const aspect_ratio = canvas.height / canvas.width;
 
