@@ -291,6 +291,7 @@ export function fillMesh(buffer, mesh, camera, projection_matrix) {
     let world_matrix = Matrix.worldMatrix(mesh);
     let view_matrix = Matrix.FPSview(camera.pos, camera.rot.z, camera.rot.x);
     let to_proj = Matrix.MatMult(view_matrix, projection_matrix);
+    let all_verts = [];
 
     for (let i in mesh.faces) {
         let v = [[
@@ -310,7 +311,7 @@ export function fillMesh(buffer, mesh, camera, projection_matrix) {
 
         let normal = Vector3.cross(line1, line2);
 
-        if (Vector3.dot(normal, Vector3.sub(v[0][0], camera.pos)) > 0) continue;
+         if (Vector3.dot(normal, Vector3.sub(v[0][0], camera.pos)) > 0) continue;
 
         v[0][0] = Matrix.MatVecMult(to_proj, v[0][0]);
         v[0][1] = Matrix.MatVecMult(to_proj, v[0][1]);
@@ -345,6 +346,9 @@ export function fillMesh(buffer, mesh, camera, projection_matrix) {
             verts2.push(tri);
         }
 
-        for (let t in verts2) buffer.fillTriangle(verts2[t][0], verts2[t][1], verts2[t][2], tex[t][0], tex[t][1], tex[t][2]);
+        //for (let t in verts2) buffer.fillTriangle(verts2[t][0], verts2[t][1], verts2[t][2], tex[t][0], tex[t][1], tex[t][2]);
+
+        all_verts = all_verts.concat(verts2);
     }
+    return all_verts;
 }

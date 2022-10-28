@@ -4,7 +4,6 @@ import { Camera } from "./Objects/camera.js"
 import { Cube, Obj } from "./Objects/mesh.js"
 import { Color } from "./Util/color.js"
 import { Matrix } from "./Math/matrix.js"
-import { planeTriClip } from "./clipping.js"
 
 let canvas = document.getElementById("canvas");
 let c = canvas.getContext("2d");
@@ -99,8 +98,8 @@ let cube2 = new Cube(new Vector3(4, 0, 5), new Vector3(0, 0, 0), new Vector3(1, 
 let cube3 = new Cube(new Vector3(6, 0, 5), new Vector3(0, 0, 0), new Vector3(1, 1, 1));
 //let cube = new Obj("monke.obj", new Vector3(0, 0, 5), new Vector3(0, 0, 0), 1);
 
-const near = 1;
-const far = 1000;
+const near = 0.001;
+const far = 10;
 const fov = 60;
 const aspect_ratio = canvas.height / canvas.width;
 
@@ -110,15 +109,25 @@ function loop() {
 
     move();
 
-    buffer.clear(canvas.width, canvas.height);
-    buffer.clearDepthBuffer();
+    //buffer.clear(canvas.width, canvas.height);
+    c.clearRect(0, 0, canvas.width, canvas.height)
+    //buffer.clearDepthBuffer();
 
-    fillMesh(buffer, cube0, camera, projection_matrix, aspect_ratio);
+    let verts = fillMesh(buffer, cube0, camera, projection_matrix, aspect_ratio);
+    for (let t in verts) {
+        c.beginPath();
+        c.moveTo(verts[t][0].x, verts[t][0].y);
+        c.lineTo(verts[t][1].x, verts[t][1].y);
+        c.lineTo(verts[t][2].x, verts[t][2].y);
+        c.fill();
+    }
+
+    //fillMesh(buffer, cube0, camera, projection_matrix, aspect_ratio);
     //fillMesh(buffer, cube1, camera, projection_matrix);
     //fillMesh(buffer, cube2, camera, projection_matrix);
     //fillMesh(buffer, cube3, camera, projection_matrix);
 
-    buffer.draw();
+    //buffer.draw();
 }
 
 window.onmousemove = e => {
