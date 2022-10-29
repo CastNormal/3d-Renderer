@@ -66,6 +66,18 @@ export class Buffer {
     draw() {
         this.#context.putImageData(this.#buffer, 0, 0);
     }
+
+    clearDepthBuffer() {
+        for (let i = 0; i < this.#zbuffer.length; i++) {
+            this.#zbuffer[i] = Infinity;
+        }
+    }
+
+    clear(width, height) {
+        this.#context.clearRect(0, 0, width, height);
+        this.#buffer = this.#context.getImageData(0, 0, width, height);
+    }
+
     /*
         drawLine(v1, v2, color) {
     
@@ -101,8 +113,113 @@ export class Buffer {
             }
         }*/
 
-    #drawHorLine(x0, x1, z0, z1, y, u0, u1, v0, v1) {
+    setPixel(x, y, color) {
+        let i = (y * this.#width + x) * 4;
 
+        if (x < 0 || y < 0 || x >= this.#width || y >= this.#height) {
+            return; //Because of wonky triangle rasterization
+        }
+
+        this.#buffer.data[i + 0] = color.r;
+        this.#buffer.data[i + 1] = color.g;
+        this.#buffer.data[i + 2] = color.b;
+        this.#buffer.data[i + 3] = color.alpha;
+    }
+
+    #drawHorLine(x0, x1, y, color) {
+        if (x0 > x1) {
+            [x0, x1] = [x1, x0];
+        }
+
+        let length = x1 - x0;
+
+        if (x0 == x1) {
+            this.setPixel(x0, y, color);
+            //this.#context.fillRect(x0, y, 1, 1);
+            return;
+        }
+
+        for (let x = x0; x <= x1; x++) {
+            this.setPixel(x, y, color);
+        }
+    }
+
+    #bottomFlatTriangle(p1, p2, p3, color) {
+
+        let invslope1 = (p2.x - p1.x) / (p2.y - p1.y);
+        let invslope2 = (p3.x - p1.x) / (p3.y - p1.y);
+
+        let curx1 = p1.x;
+        let curx2 = p1.x;
+
+        for (let scanlineY = p1.y; scanlineY <= p2.y; scanlineY++) {
+            this.#drawHorLine(Math.round(curx1), Math.round(curx2), parseInt(scanlineY), color);
+
+            curx1 += invslope1;
+            curx2 += invslope2;
+        }
+    }
+
+    #topFlatTriangle(p1, p2, p3, color) {
+        let invslope1 = (p3.x - p1.x) / (p3.y - p1.y);
+        let invslope2 = (p3.x - p2.x) / (p3.y - p2.y);
+
+        let curx1 = p3.x;
+        let curx2 = p3.x;
+
+        for (let scanlineY = p3.y; scanlineY > p1.y; scanlineY--) {
+            this.#drawHorLine(Math.round(curx1), Math.round(curx2), parseInt(scanlineY), color);
+
+            curx1 -= invslope1;
+            curx2 -= invslope2;
+        }
+    }
+
+    fillTriangle(v1, v2, v3, color) {        
+        let p1 = new Vector2(Math.round(v1.x), Math.round(v1.y));
+        let p2 = new Vector2(Math.round(v2.x), Math.round(v2.y));
+        let p3 = new Vector2(Math.round(v3.x), Math.round(v3.y));
+
+        if (p1.y == p2.y && p2.y == p3.y) return;
+
+        if (p2.y < p1.y) [p2, p1] = [p1, p2];
+
+        if (p3.y < p2.y) [p3, p2] = [p2, p3];
+
+        if (p2.y < p1.y) [p2, p1] = [p1, p2];
+
+
+        if (p1.y == p2.y) {
+            this.#topFlatTriangle(p1, p2, p3, color);
+        } else if (p2.y == p3.y) {
+            this.#bottomFlatTriangle(p1, p2, p3, color);
+        } else {
+
+            let p4 = new Vector2(p1.x + ((p2.y - p1.y) / (p3.y - p1.y)) * (p3.x - p1.x), p2.y);
+
+            this.#bottomFlatTriangle(p1, p2, p4, color);
+            this.#topFlatTriangle(p2, p4, p3, color);
+        }
+    }
+
+    /*setPixel(x, y, z, color) {
+        let i = (y * this.#width + x) * 4;
+
+        if (x < 0 || y < 0 || x >= this.#width || y >= this.#height) {
+            return; //Because of wonky triangle rasterization
+        }
+
+        if (z > this.#zbuffer[y * this.#width + x]) return;
+
+        this.#zbuffer[y * this.#width + x] = z;
+
+        this.#buffer.data[i + 0] = color.r;
+        this.#buffer.data[i + 1] = color.g;
+        this.#buffer.data[i + 2] = color.b;
+        this.#buffer.data[i + 3] = color.alpha;
+    }
+
+    #drawHorLine(x0, x1, z0, z1, y, u0, u1, v0, v1) {
         if (x0 > x1) {
             [x0, x1] = [x1, x0];
             [z0, z1] = [z1, z0];
@@ -121,6 +238,7 @@ export class Buffer {
             tex_y = clamp(tex_y, 0, 7);
 
             this.setPixel(x0, y, 1 / z0, this.#texture[tex_y][tex_x]);
+            //this.#context.fillRect(x0, y, 1, 1);
             return;
         }
 
@@ -273,18 +391,7 @@ export class Buffer {
             this.#bottomFlatTriangle(p1, p2, p4, te1, te2, te4);
             this.#topFlatTriangle(p2, p4, p3, te2, te4, te3);
         }
-    }
-
-    clearDepthBuffer() {
-        for (let i = 0; i < this.#zbuffer.length; i++) {
-            this.#zbuffer[i] = Infinity;
-        }
-    }
-
-    clear(width, height) {
-        this.#context.clearRect(0, 0, width, height);
-        this.#buffer = this.#context.getImageData(0, 0, width, height);
-    }
+    }*/
 }
 
 export function fillMesh(buffer, mesh, camera, projection_matrix) {

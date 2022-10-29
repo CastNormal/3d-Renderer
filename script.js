@@ -2,11 +2,11 @@ import { Buffer, fillMesh } from "./render.js"
 import { Vector2, Vector3 } from "./Math/vector.js"
 import { Camera } from "./Objects/camera.js"
 import { Cube, Obj } from "./Objects/mesh.js"
-import { Color } from "./Util/color.js"
+import { Black, Color } from "./Util/color.js"
 import { Matrix } from "./Math/matrix.js"
 
 let canvas = document.getElementById("canvas");
-let c = canvas.getContext("2d");
+let c = canvas.getContext("2d", { willReadFrequently: true });
 
 let text = document.getElementById("text");
 
@@ -108,18 +108,13 @@ function loop() {
     window.requestAnimationFrame(loop);
 
     move();
-
-    //buffer.clear(canvas.width, canvas.height);
-    c.clearRect(0, 0, canvas.width, canvas.height)
-    //buffer.clearDepthBuffer();
+ 
+    buffer.clear(canvas.width, canvas.height);
+    buffer.clearDepthBuffer();
 
     let verts = fillMesh(buffer, cube0, camera, projection_matrix, aspect_ratio);
     for (let t in verts) {
-        c.beginPath();
-        c.moveTo(verts[t][0].x, verts[t][0].y);
-        c.lineTo(verts[t][1].x, verts[t][1].y);
-        c.lineTo(verts[t][2].x, verts[t][2].y);
-        c.fill();
+        buffer.fillTriangle(verts[t][0], verts[t][1], verts[t][2], Black);
     }
 
     //fillMesh(buffer, cube0, camera, projection_matrix, aspect_ratio);
@@ -127,7 +122,7 @@ function loop() {
     //fillMesh(buffer, cube2, camera, projection_matrix);
     //fillMesh(buffer, cube3, camera, projection_matrix);
 
-    //buffer.draw();
+    buffer.draw();
 }
 
 window.onmousemove = e => {
